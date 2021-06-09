@@ -1,0 +1,44 @@
+/* syntax for constant ptx expressions */
+
+HEX_LITERAL ::= '__external__'
+OCT_LITERAL ::= '__external__'
+BIN_LITERAL ::= '__external__'
+DEC_LITERAL ::= '__external__'
+FLT_LITERAL ::= '__external__'
+DBL_LITERAL ::= '__external__'
+
+ce_int_literal ::= HEX_LITERAL | OCT_LITERAL | BIN_LITERAL | DEC_LITERAL
+ce_flt_literal ::= FLT_LITERAL | DBL_LITERAL
+
+ce_literal ::= ce_int_literal | ce_flt_literal
+
+/* surprisingly -(.s64)1 works for ptxas, must have used the same trick? */
+
+ce_primary ::= '(' ( '.s64' | '.u64' ) ')' constexpr | '(' constexpr ')' | ce_literal
+
+ce_unary_1 ::= ('+' | '-' | '!' | '~')* ce_primary
+ce_unary_2 ::= ce_unary_1
+
+ce_prod ::= (ce_prod ('*' | '%' | '/'))? ce_unary_2
+
+ce_sum ::= (ce_sum ('+' | '-'))? ce_prod
+
+ce_shifts ::= (ce_shifts ('<<' | '>>'))? ce_sum
+
+ce_cmp ::= (ce_cmp ('<' | '>' | '<=' | '>='))? ce_shifts
+
+ce_eq ::= (ce_eq ('==' | '!='))? ce_cmp
+
+ce_band ::= (ce_band '&')? ce_eq
+
+ce_bxor ::= (ce_bxor '^')? ce_band
+
+ce_bor ::= (ce_bor '|')? ce_bxor
+
+ce_land ::= (ce_land '&&')? ce_bor
+
+ce_lor ::= (ce_lor '||')? ce_land
+
+ce_ternary ::= ce_ternary '?' ce_ternary ':' ce_ternary | ce_lor
+
+constexpr ::= ce_ternary
