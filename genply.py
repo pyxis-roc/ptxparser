@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # for t in nametokens.PTX_65_KEYWORDS:
     #     lx.add_indirect(t.upper(), 'ID')
 
-    #lx.add_ignore('SPACE')
+    lx.add_ignore('SPACE')
 
     od = Path(args.output_dir)
     with open(od / "ptx_lexer_ply.py", "w") as f:

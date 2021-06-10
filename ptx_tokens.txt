@@ -1,3 +1,4 @@
+SPACE [#x20#x9#xd#xa]
 HEX_LITERAL /0[xX][A-Fa-f0-9]+U?/
 OCT_LITERAL /0[0-7]+U?/
 BIN_LITERAL /0[bB][01]+U?/
