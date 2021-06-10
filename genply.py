@@ -18,7 +18,12 @@ if __name__ == "__main__":
     treg = tokens.TokenRegistry(args.tokens)
     treg.read()
 
-    lx = cvtply.LexerGen(treg)
+    action_tokens = {"HEX_LITERAL": "Hexadecimal",
+                     "OCT_LITERAL": "Octal",
+                     "BIN_LITERAL": "Binary",
+                     "DEC_LITERAL": "Decimal"}
+
+    lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')
 
     # for t in nametokens.PTX_65_KEYWORDS:
     #     lx.add_indirect(t.upper(), 'ID')
@@ -42,7 +47,7 @@ if __name__ == "__main__":
         gr = EBNFParser().parse('\n'.join(grs))
 
     ag = cvtply.CTActionGen()
-    prs = cvtply.ParserGen(treg, gr, 'constexpr', actiongen=ag, handlermod='ptxgenactions')
+    prs = cvtply.ParserGen(treg, gr, 'constexpr', actiongen=ag, handlermod='ppactions')
 
     with open(od / "ptx_parser_ply.py", "w") as f:
         print(prs.get_parser(lexer='ptx_lexer_ply'), file=f)
