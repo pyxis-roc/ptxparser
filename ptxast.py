@@ -41,4 +41,24 @@ class Unop(PTXAST):
 
     __repr__ = __str__
 
+class Ternary(PTXAST):
+    def __init__(self, cond, true, false):
+        self.cond = cond
+        self.true = true
+        self.false = false
+
+    def __str__(self):
+        return f"Ternary(cond={self.cond}, true={self.true}, false={self.false})"
+
+    __repr__ = __str__
+
+class Cast(PTXAST):
+    def __init__(self, cast, expr):
+        self.cast = cast
+        self.expr = expr
+
+    def __str__(self):
+        return f"Cast(cast={self.cast}, expr={self.expr})"
+
+    __repr__ = __str__
 

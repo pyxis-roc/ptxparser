@@ -1,5 +1,6 @@
 from ptxgenactions import *
 from ptxast import *
+from ebnftools.convert.ply import utils
 
 class a_ce_int_literal(a_ce_int_literal):
     def abstract(self):
@@ -9,30 +10,31 @@ class a_ce_literal(a_ce_literal):
     def abstract(self):
         return self.args[0]
 
-class a_bnf_concat_ce_unary_1(a_bnf_concat_ce_unary_1):
-    def abstract(self):
-        if self.args[0] is None:
-            return None
-
-        return self
-
 class a_ce_unary_1(a_ce_unary_1):
     def abstract(self):
         if self.args[0] is None:
             return self.args[1]
 
-        return Unop(op=self.args[0].args[0], expr=self.args[1])
+        x = self.args[1]
+        for op in reversed(list(utils.make_concat_list(self.args[0]))):
+            x = Unop(op=op, expr=x)
+
+        return x
 
 class a_ce_primary(a_ce_primary):
     def abstract(self):
         if self.args[1] is None:
             return self.args[0]
 
-        return self
+        if isinstance(self.args[1], PTXAST):
+            return self.args[1]
+        else:
+            return Cast(self.args[1].args[0], self.args[3])
+
 
 class BinOpMixin:
     def abstract(self):
-        if self.args[0].args[0] is None:
+        if self.args[0] is None:
             return self.args[1]
 
         return BinOp(self.args[0].args[1], self.args[0].args[0], self.args[1])
@@ -65,11 +67,11 @@ class a_ce_unary_2(a_ce_unary_2):
 
 class a_constexpr(a_constexpr):
     def abstract(self):
-        return self.args[0]
+        return ConstExpr(self.args[0])
 
 class a_ce_ternary(a_ce_ternary):
     def abstract(self):
         if self.args[1] is None:
             return self.args[0]
 
-        return self
+        return Ternary(self.args[0], self.args[2], self.args[4])

@@ -46,7 +46,7 @@ if __name__ == "__main__":
         grs, _ = parse_annotated_grammar(f.read())
         gr = EBNFParser().parse('\n'.join(grs))
 
-    ag = cvtply.CTActionGen()
+    ag = cvtply.CTActionGen(abstract=True)
     prs = cvtply.ParserGen(treg, gr, 'constexpr', actiongen=ag, handlermod='ppactions')
 
     with open(od / "ptx_parser_ply.py", "w") as f:
