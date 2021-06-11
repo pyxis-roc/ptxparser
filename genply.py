@@ -53,7 +53,7 @@ if __name__ == "__main__":
         gr = EBNFParser().parse('\n'.join(grs))
 
     ag = cvtply.CTActionGen(abstract=True)
-    prs = cvtply.ParserGen(treg, gr, 'statement', actiongen=ag, handlermod='ppactions')
+    prs = cvtply.ParserGen(treg, gr, 'start', actiongen=ag, handlermod='ppactions')
 
     with open(od / "ptx_parser_ply.py", "w") as f:
         print(prs.get_parser(lexer='ptx_lexer_ply'), file=f)

@@ -83,5 +83,3 @@ class Double(Token):
         return f"Double({self.value})"
 
     __repr__ = __str__
-
-    

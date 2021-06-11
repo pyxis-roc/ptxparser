@@ -96,3 +96,13 @@ class a_ce_ternary(a_ce_ternary):
             return self.args[0]
 
         return Ternary(self.args[0], self.args[2], self.args[4])
+
+class a_target_string(a_target_string):
+    def abstract(self):
+        return self.args[0]
+
+class a_target_list(a_target_list):
+    def abstract(self):
+        args = [self.args[0]]
+        args.extend(utils.make_concat_list(self.args[1], sel=[1]))
+        return args
