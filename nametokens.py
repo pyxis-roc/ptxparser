@@ -138,15 +138,22 @@ if __name__ == "__main__":
 
     for k in PTX_65_KEYWORDS:
         s = tokens.TknLiteral(k)
-        if tr.v2n[s.key()] != k.upper():
-            tr.remove(tr.v2n[s.key()])
-            tr.add(k.upper(), s)
+        sk = s.key()
+        if sk in tr.v2n:
+            if tr.v2n[sk] != k.upper():
+                old = tr.v2n[sk]
+                tr.remove(tr.v2n[sk])
+                tr.add(k.upper(), s)
+                tr.rename(old, k.upper())
 
     for k in OTHER_NAMES:
         s = tokens.TknLiteral(k)
-        if tr.v2n[s.key()] != OTHER_NAMES[k]:
-            tr.remove(tr.v2n[s.key()])
-            tr.add(OTHER_NAMES[k], s)
-            
+        sk = s.key()
+        if sk in tr.v2n:
+            if tr.v2n[sk] != OTHER_NAMES[k]:
+                old = tr.v2n[sk]
+                tr.remove(tr.v2n[sk])
+                tr.add(OTHER_NAMES[k], s)
+                tr.rename(old, OTHER_NAMES[k])
 
-    tr.write()
+    tr.write_ordered()
