@@ -31,6 +31,27 @@ class a_ce_primary(a_ce_primary):
         else:
             return Cast(self.args[1].args[0], self.args[3])
 
+class a_predicate(a_predicate):
+    def abstract(self):
+        return Predicate(self.args[1] is not None, self.args[2])
+
+class a_label(a_args):
+    def abstract(self):
+        return Label(self.args[0])
+
+class a_args(a_args):
+    def abstract(self):
+        return self.args[0]
+
+class a_arg_list(a_arg_list):
+    def abstract(self):
+        args = [self.args[0].args[0]]
+        args.extend(utils.make_concat_list(self.args[0].args[1], sel=[1]))
+        return args
+
+class a_statement(a_statement):
+    def abstract(self):
+        return Statement(self.args[0], self.args[1], self.args[2], self.args[3])
 
 class BinOpMixin:
     def abstract(self):

@@ -54,3 +54,13 @@ ce_lor ::= (ce_lor '||')? ce_land
 ce_ternary ::= ce_ternary '?' ce_ternary ':' ce_ternary | ce_lor
 
 constexpr ::= ce_ternary
+
+
+/* === */
+ID ::= '__external__'
+label ::= ID ':'
+predicate ::= '@' '!'? ID
+opcode ::= 'add' '.f32'
+args ::= constexpr | ID
+arg_list ::= (args (',' args)*)?
+statement ::= label? predicate? opcode arg_list ';'

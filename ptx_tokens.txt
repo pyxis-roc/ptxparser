@@ -1,3 +1,4 @@
+ID /([a-zA-Z][a-zA-Z0-9_$]*)|([_$%][A-Za-z0-9_$]+)/
 SPACE [#x20#x9#xd#xa]
 HEX_LITERAL /0[xX][A-Fa-f0-9]+U?/
 OCT_LITERAL /0[0-7]+U?/
@@ -37,3 +38,8 @@ TOKEN_RSHIFT '>>'
 TOKEN_LE '<='
 TOKEN_COLON ':'
 TOKEN_Q '?'
+TOKEN_STR_1 ','
+TOKEN_STR_2 '@'
+TOKEN_STR_4 ';'
+TOKEN_STR_5 'add'
+TOKEN_STR_6 '.f32'

@@ -6,6 +6,7 @@ from ebnftools.ebnfast import EBNFParser
 from ebnftools.ebnfanno import parse_annotated_grammar
 import argparse
 from pathlib import Path
+import nametokens
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Generate a PLY-based parser for the PTX grammar")
@@ -29,8 +30,9 @@ if __name__ == "__main__":
 
     lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')
 
-    # for t in nametokens.PTX_65_KEYWORDS:
-    #     lx.add_indirect(t.upper(), 'ID')
+    for t in nametokens.PTX_65_KEYWORDS:
+        if t.upper() in treg.tokens:
+            lx.add_indirect(t.upper(), 'ID')
 
     lx.add_ignore('SPACE')
 
@@ -51,7 +53,7 @@ if __name__ == "__main__":
         gr = EBNFParser().parse('\n'.join(grs))
 
     ag = cvtply.CTActionGen(abstract=True)
-    prs = cvtply.ParserGen(treg, gr, 'constexpr', actiongen=ag, handlermod='ppactions')
+    prs = cvtply.ParserGen(treg, gr, 'statement', actiongen=ag, handlermod='ppactions')
 
     with open(od / "ptx_parser_ply.py", "w") as f:
         print(prs.get_parser(lexer='ptx_lexer_ply'), file=f)
