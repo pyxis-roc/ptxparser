@@ -1,8 +1,11 @@
 TARGET = build
 
-all: $(TARGET)/ptx_expressions.bnf $(TARGET)/ptx_lexer_ply.py $(TARGET)/ptxast.py $(TARGET)/ppactions.py $(TARGET)/ptxtokens.py
+all: $(TARGET)/ptx_expressions.bnf $(TARGET)/ptx_lexer_ply.py $(TARGET)/ptxast.py $(TARGET)/ppactions.py $(TARGET)/ptxtokens.py $(TARGET)/testparser.py
 
 $(TARGET)/ptxtokens.py: ptxtokens.py
+	cp $< $@
+
+$(TARGET)/testparser.py: testparser.py
 	cp $< $@
 
 $(TARGET)/ptxast.py: _ptx_ast.cfg _ast_gen.py _build_ast.py

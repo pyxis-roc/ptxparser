@@ -45,8 +45,11 @@ class a_args(a_args):
 
 class a_arg_list(a_arg_list):
     def abstract(self):
-        args = [self.args[0].args[0]]
-        args.extend(utils.make_concat_list(self.args[0].args[1], sel=[1]))
+        if self.args[0] is None:
+            args = []
+        else:
+            args = [self.args[0].args[0]]
+            args.extend(utils.make_concat_list(self.args[0].args[1], sel=[1]))
         return args
 
 class a_statement(a_statement):
@@ -96,10 +99,6 @@ class a_ce_ternary(a_ce_ternary):
             return self.args[0]
 
         return Ternary(self.args[0], self.args[2], self.args[4])
-
-class a_target_string(a_target_string):
-    def abstract(self):
-        return self.args[0]
 
 class a_target_list(a_target_list):
     def abstract(self):

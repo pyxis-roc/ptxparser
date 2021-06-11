@@ -31,7 +31,8 @@ if __name__ == "__main__":
     lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')
 
     for t in nametokens.PTX_65_KEYWORDS:
-        if t.upper() in treg.tokens:
+        tu = "'" + t + "'"
+        if tu in treg.v2n:
             lx.add_indirect(t.upper(), 'ID')
 
     lx.add_ignore('SPACE')

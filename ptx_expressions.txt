@@ -1,5 +1,48 @@
 /* syntax for constant ptx expressions */
 
+/* BEGIN DUP */
+u2 ::= '.u2'
+u4 ::= '.u4'
+u8 ::= '.u8'
+u16 ::= '.u16'
+u32 ::= '.u32'
+u64 ::= '.u64'
+
+s2 ::= '.s2'
+s4 ::= '.s4'
+s8 ::= '.s8'
+s16 ::= '.s16'
+s32 ::= '.s32'
+s64 ::= '.s64'
+
+b1 ::= '.b1'
+b8 ::= '.b8'
+b16 ::= '.b16'
+b32 ::= '.b32'
+b64 ::= '.b64'
+
+f16 ::= '.f16'
+f16x2 ::= '.f16x2'
+
+f32 ::= '.f32'
+f64 ::= '.f64'
+pred ::= '.pred'
+
+binary ::= b16 | b32 | b64
+unsigned ::= u16 | u32 | u64
+signed ::= s16 | s32 | s64
+float ::= f32 | f64
+
+signed_unsigned ::= signed | unsigned
+
+/* these are possible types instruction, used to create PTX_TYPES in ptxgen/gentests.py */
+/* TODO: matrix types */
+ptx_types ::= binary | b1 | b8 | signed | s2 | s4 | s8 | unsigned | u2 | u4 | u8 | float | f16 | f16x2 | pred | '.ccregister' | '.texref' | '.surfref'
+ptx_vector ::= '.v2' | '.v4'
+
+/* END DUP */
+
+
 HEX_LITERAL ::= '__external__'
 OCT_LITERAL ::= '__external__'
 BIN_LITERAL ::= '__external__'
@@ -60,7 +103,6 @@ constexpr ::= ce_ternary
 ID ::= '__external__'
 label ::= ID ':'
 predicate ::= '@' '!'? ID
-opcode ::= 'add' '.f32'
 
 addr_operand ::= '[' ID ('+' ce_int_literal )? ']'
 
@@ -75,14 +117,13 @@ vector_extract ::= ID vector_suffixes
 
 args ::= constexpr | ID | addr_operand | array_operand | vector_operand | vector_extract
 arg_list ::= (args (',' args)*)?
-statement ::= label? predicate? opcode arg_list ';'
 
 /* ptxas accepts 32U and 64U */
 address_size_dir ::= '.address_size' DEC_LITERAL
 
 target_string ::= 'sm_70' | 'sm_72' | 'sm_75' | 'sm_60' | 'sm_61' | 'sm_62' | 'sm_50' | 'sm_52' | 'sm_53' | 'sm_30' | 'sm_32' | 'sm_35' | 'sm_37' | 'sm_20' | 'sm_10' | 'sm_11' | 'sm_12' | 'sm_13' | 'texmode_unified' | 'texmode_independent' | 'debug' | 'map_f64_to_f32'
 
-target_list ::= target_string (',' target_string)*
+target_list ::= ID (',' ID)*
 target_dir ::= '.target' target_list address_size_dir?
 
 /* NOTE: this rejigs ptx65_opcodse.txt */
@@ -91,48 +132,6 @@ state_spaces ::= '.reg' | '.sreg' | '.const' | '.global' | '.local' | '.param' |
 
 /* TODO: N => DEC_LITERAL only? */
 ptr_dir ::= '.ptr' state_spaces '.align' DEC_LITERAL
-
-/* BEGIN DUP */
-u2 ::= '.u2'
-u4 ::= '.u4'
-u8 ::= '.u8'
-u16 ::= '.u16'
-u32 ::= '.u32'
-u64 ::= '.u64'
-
-s2 ::= '.s2'
-s4 ::= '.s4'
-s8 ::= '.s8'
-s16 ::= '.s16'
-s32 ::= '.s32'
-s64 ::= '.s64'
-
-b1 ::= '.b1'
-b8 ::= '.b8'
-b16 ::= '.b16'
-b32 ::= '.b32'
-b64 ::= '.b64'
-
-f16 ::= '.f16'
-f16x2 ::= '.f16x2'
-
-f32 ::= '.f32'
-f64 ::= '.f64'
-pred ::= '.pred'
-
-binary ::= b16 | b32 | b64
-unsigned ::= u16 | u32 | u64
-signed ::= s16 | s32 | s64
-float ::= f32 | f64
-
-signed_unsigned ::= signed | unsigned
-
-/* these are possible types instruction, used to create PTX_TYPES in ptxgen/gentests.py */
-/* TODO: matrix types */
-ptx_types ::= binary | b1 | b8 | signed | s2 | s4 | s8 | unsigned | u2 | u4 | u8 | float | f16 | f16x2 | pred | '.ccregister' | '.texref' | '.surfref'
-ptx_vector ::= '.v2' | '.v4'
-
-/* END DUP */
 
 generic_var ::= 'generic' '(' ID ')'
 addr_expr ::= (generic_var | ID) '+' constexpr
@@ -151,9 +150,32 @@ attribute_spec ::= '.managed'
 attribute_spec_list ::= attribute_spec (',' attribute_spec)*
 attribute_dir ::= '.attribute' '(' attribute_spec_list ')'
 align_dir ::= '.align' ce_int_literal
-varname_list ::= varname varinitializer? (',' varname_list)*
-var_decl ::= state_spaces align_dir? ptx_vector? ptx_types varname_list
+varinit_list ::= varname varinitializer? (',' varinit_list)*
+var_decl ::= state_spaces align_dir? ptx_vector? ptx_types varinit_list
+var_decl_stmt ::= var_decl ';'
 
-param_dir ::= '.param' ptx_types ptr_dir? varname
-param_list ::= param_dir (',' param_dir)*
-start ::= var_decl | target_dir | statement
+param_state_spaces ::= '.param' | '.reg'
+param_decl ::= param_state_spaces align_dir? ptx_vector? ptx_types varname
+param_list ::= param_decl (',' param_decl)*
+param_spec ::= '(' param_list? ')'
+
+block_stmt ::= statement | var_decl_stmt | block
+block ::= '{' block_stmt* '}'
+
+func_body ::= block?
+func ::= '.func' param_spec? ID param_spec? '.noreturn'? func_body
+
+/* see the example of .entry cta_fft, but ptxas complains if two entry statements follow each other without a {} */
+/* TODO: pragmas and performance-tuning directives */
+entry ::= '.entry' ID param_spec? block
+
+linker_dir ::= '.extern' | '.visible' | '.weak' | '.common'
+
+linker_identifier ::= entry  | func | var_decl_stmt
+linker_stmt ::= linker_dir linker_identifier
+
+opcode ::= 'add' '.f32' | 'ld' '.param' '.u64' | 'cvta' '.to' '.global' '.u64' | 'ret' | 'ld' '.v2' '.b8' | 'st' '.global' '.u8' | 'cvt' '.u32' '.u8'
+
+statement ::= label? predicate? opcode arg_list ';'
+
+start ::= target_dir (statement | var_decl_stmt | entry | func | linker_stmt )*
