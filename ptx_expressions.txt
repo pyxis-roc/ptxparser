@@ -4,13 +4,25 @@ HEX_LITERAL ::= '__external__'
 OCT_LITERAL ::= '__external__'
 BIN_LITERAL ::= '__external__'
 DEC_LITERAL ::= '__external__'
-FLT_LITERAL ::= '__external__'
-DBL_LITERAL ::= '__external__'
+FLTX_LITERAL ::= '__external__'
+DBLX_LITERAL ::= '__external__'
+DBL_LITERAL1 ::= '__external__'
+DBL_LITERAL2 ::= '__external__'
+DBL_LITERAL3 ::= '__external__'
 
 ce_int_literal ::= HEX_LITERAL | OCT_LITERAL | BIN_LITERAL | DEC_LITERAL
-ce_flt_literal ::= FLT_LITERAL | DBL_LITERAL
 
-ce_literal ::= ce_int_literal | ce_flt_literal
+/* a FLTX_LITERAL cannot occur in a constant expression */
+ce_flt_literal ::= FLTX_LITERAL | DBLX_LITERAL
+
+/* DBL_LITERAL? taken from C spec  */
+/* decimal + exponent */
+/* decimal point + number + exponent */
+/* decimal + decimal point */
+
+
+ce_dbl_literal ::= DBLX_LITERAL | DBL_LITERAL1 | DBL_LITERAL2 | DBL_LITERAL3
+ce_literal ::= ce_int_literal | ce_dbl_literal
 
 /* surprisingly -(.s64)1 works for ptxas, must have used the same trick? */
 

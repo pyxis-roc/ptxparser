@@ -17,7 +17,7 @@ class a_ce_unary_1(a_ce_unary_1):
 
         x = self.args[1]
         for op in reversed(list(utils.make_concat_list(self.args[0]))):
-            x = Unop(op=op, expr=x)
+            x = UnOp(op=op, expr=x)
 
         return x
 
@@ -26,7 +26,7 @@ class a_ce_primary(a_ce_primary):
         if self.args[1] is None:
             return self.args[0]
 
-        if isinstance(self.args[1], PTXAST):
+        if isinstance(self.args[1], Node):
             return self.args[1]
         else:
             return Cast(self.args[1].args[0], self.args[3])

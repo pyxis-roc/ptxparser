@@ -2,9 +2,12 @@ SPACE [#x20#x9#xd#xa]
 HEX_LITERAL /0[xX][A-Fa-f0-9]+U?/
 OCT_LITERAL /0[0-7]+U?/
 BIN_LITERAL /0[bB][01]+U?/
-DEC_LITERAL /[1-9][0-9]*U?/
-FLT_LITERAL /0[fF][0-9A-Fa-f]{8}/
-DBL_LITERAL /0[dD][0-9A-Fa-f]{16}/
+DBL_LITERAL3 /[0-9]*\.[0-9]+((e|E)(\+|-)?[0-9]+)?/
+DBL_LITERAL2 /[0-9]+\.((e|E)(\+|-)?[0-9]+)?/
+DBL_LITERAL1 /[0-9]+((e|E)(\+|-)?[0-9]+)/
+DEC_LITERAL /(0|[1-9][0-9]*)U?/
+FLTX_LITERAL /0[fF][0-9A-Fa-f]{8}/
+DBLX_LITERAL /0[dD][0-9A-Fa-f]{16}/
 TOKEN_STR_0 '__external__'
 TOKEN_RPAREN ')'
 TOKEN_LPAREN '('

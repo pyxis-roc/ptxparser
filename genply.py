@@ -21,7 +21,11 @@ if __name__ == "__main__":
     action_tokens = {"HEX_LITERAL": "Hexadecimal",
                      "OCT_LITERAL": "Octal",
                      "BIN_LITERAL": "Binary",
-                     "DEC_LITERAL": "Decimal"}
+                     "DEC_LITERAL": "Decimal",
+                     "DBL_LITERAL1": "Double",
+                     "DBL_LITERAL2": "Double",
+                     "DBL_LITERAL3": "Double",
+    }
 
     lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')
 

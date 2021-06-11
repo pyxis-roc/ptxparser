@@ -15,5 +15,5 @@ $(TARGET)/ppactions.py: ppactions.py
 $(TARGET)/ptx_expressions.bnf: ptx_expressions.txt ptx_tokens.txt
 	../ebnftools/ebnftools/cvt2bnf.py $^ > $@
 
-$(TARGET)/ptx_lexer_ply.py: $(TARGET)/ptx_expressions.bnf ptx_tokens.txt
+$(TARGET)/ptx_lexer_ply.py: $(TARGET)/ptx_expressions.bnf ptx_tokens.txt ptxtokens.py
 	./genply.py $< ptx_tokens.txt -d $(TARGET)
