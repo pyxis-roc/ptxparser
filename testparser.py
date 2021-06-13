@@ -4,6 +4,7 @@ import argparse
 from ptx_lexer_ply import lexer
 from ptx_parser_ply import parser
 import re
+import ptxgenactions as pga
 
 # PTX is ASCII
 version_dir_re = re.compile(r'\s*.version[ \t]+(?P<major>[0-9])\.(?P<minor>[0-9]+)', re.ASCII)
@@ -27,4 +28,11 @@ if __name__ == "__main__":
         if args.lines == 0: args.lines = len(data)
         data = '\n'.join(data[0:args.lines])
         result = parser.parse(data, lexer=lexer, debug=args.debug, tracking=args.tracking)
+        result.version = f"{v.group('major')}.{v.group('minor')}"
         print(result)
+        for x in result:
+            if isinstance(x, pga.a_var_decl_stmt):
+                print(x)
+
+
+
