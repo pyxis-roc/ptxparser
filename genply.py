@@ -7,12 +7,15 @@ from ebnftools.ebnfanno import parse_annotated_grammar
 import argparse
 from pathlib import Path
 import nametokens
+import sys
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Generate a PLY-based parser for the PTX grammar")
     p.add_argument("bnfgrammar")
     p.add_argument("tokens")
     p.add_argument("-d", dest="output_dir", help="Output directory", default = ".")
+
+    sys.setrecursionlimit(6500)
 
     args = p.parse_args()
 

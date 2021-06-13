@@ -1,0 +1,1542 @@
+/* this isn't wsp+ because of generation issues */
+/* note: wsp isn't use because it is assumed the tokenizer discards all white space */
+wsp ::= [#x20#x9#xd#xa]
+
+u2 ::= '.u2'
+u4 ::= '.u4'
+u8 ::= '.u8'
+u16 ::= '.u16'
+u32 ::= '.u32'
+u64 ::= '.u64'
+
+s2 ::= '.s2'
+s4 ::= '.s4'
+s8 ::= '.s8'
+s16 ::= '.s16'
+s32 ::= '.s32'
+s64 ::= '.s64'
+
+b1 ::= '.b1'
+b8 ::= '.b8'
+b16 ::= '.b16'
+b32 ::= '.b32'
+b64 ::= '.b64'
+
+f16 ::= '.f16'
+f16x2 ::= '.f16x2'
+
+f32 ::= '.f32'
+f64 ::= '.f64'
+pred ::= '.pred'
+
+binary ::= b16 | b32 | b64
+unsigned ::= u16 | u32 | u64
+signed ::= s16 | s32 | s64
+float ::= f32 | f64
+
+signed_unsigned ::= signed | unsigned
+
+/* these are possible types instruction, used to create PTX_TYPES in ptxgen/gentests.py */
+/* TODO: matrix types */
+ptx_types ::= binary | b1 | b8 | signed | s2 | s4 | s8 | unsigned | u2 | u4 | u8 | float | f16 | f16x2 | pred | '.ccregister' | '.texref' | '.surfref'
+ptx_vector ::= '.v2' | '.v4'
+
+hi ::= '.hi'
+lo ::= '.lo'
+wide ::= '.wide'
+sat ::= '.sat'
+hi_lo_wide ::= hi | lo | wide
+
+wide_types ::= signed_unsigned - ('.s64' | '.u64')
+
+/* need because of how we detect opcodes and params */
+no_params ::= ''
+
+/* todo: handle ptx comments using modes?*/
+
+/* integer arithmetic */
+add_opcode ::= 'add' ((sat s32) | signed_unsigned)
+unary_params ::= 'out_d_type0' ',' 'in_a_type0'
+binary_params ::= unary_params ',' 'in_b_type0'
+ternary_params ::= binary_params ',' 'in_c_type0'
+add_testcase ::= add_opcode binary_params
+
+sub_opcode ::= 'sub' ((sat s32) | signed_unsigned)
+sub_testcase ::= sub_opcode binary_params
+
+mul_opcode ::= 'mul' (((hi | lo) signed_unsigned) | (wide wide_types))
+
+/* .wide indicates  a different type than indicated in the instruction */
+/* This is handled in the code, rather than in the grammar if .wide is detected in the opcode*/
+
+mul_params ::= 'out_d_type0_wide' ',' 'in_a_type0' ',' 'in_b_type0'
+mul_testcase ::= mul_opcode mul_params
+
+mad_opcode ::= 'mad' (((hi | lo) signed_unsigned) | (hi sat s32) | (wide wide_types))
+
+mad_params ::= mul_params ',' 'in_c_type0_wide'
+mad_testcase ::= mad_opcode mad_params
+
+mul24_opcode ::= 'mul24' (hi | lo) (u32 | s32)
+mul24_testcase ::= mul24_opcode binary_params
+
+mad24_opcode ::= 'mad24' ((((hi | lo)) (u32 | s32)) | (hi sat s32))
+mad24_testcase ::= mad24_opcode ternary_params
+
+sad_opcode ::= 'sad' signed_unsigned
+sad_testcase ::= sad_opcode ternary_params
+
+div_opcode ::= 'div' signed_unsigned
+div_testcase ::= div_opcode binary_params
+
+rem_opcode ::= 'rem' signed_unsigned
+rem_testcase ::= rem_opcode binary_params
+
+abs_opcode ::= 'abs' signed
+abs_testcase ::= abs_opcode unary_params
+
+neg_opcode ::= 'neg' signed
+neg_testcase ::= neg_opcode unary_params
+
+min_opcode ::= 'min' signed_unsigned
+min_testcase ::= min_opcode binary_params
+max_opcode ::= 'max' signed_unsigned
+max_testcase ::= max_opcode binary_params
+
+bitwise_unary_params ::= 'out_d_u32' ',' 'in_a_type0'
+popc_opcode ::= 'popc' ( b32 | b64 )
+popc_testcase ::= popc_opcode bitwise_unary_params
+
+clz_opcode ::= 'clz' ( b32 | b64 )
+clz_testcase ::= clz_opcode bitwise_unary_params
+
+bfind_opcode ::= 'bfind' ( '.shiftamt')? ( u32 | u64 | s32 | s64 )
+bfind_testcase ::= bfind_opcode bitwise_unary_params
+
+fns_opcode ::= 'fns' b32
+/* base is actually b32, s32 or u32 --> use b32 since that encapsulates all 3 */
+/* base has range (0 <=) base <= 31 */
+fns_params ::= 'out_d_b32' ',' 'in_mask_b32' ',' 'in_base_b32' ',' 'in_offset_s32'
+fns_testcase ::= fns_opcode fns_params
+
+brev_opcode ::= 'brev' ( b32 | b64 )
+brev_testcase ::= brev_opcode unary_params
+
+bfe_opcode ::= 'bfe' ( u32 | u64 | s32 | s64 )
+
+/* b and c are 0..255 with semantics handling out of range values */
+bfe_params ::= 'out_d_type0' ',' 'in_a_type0' ',' 'in_b_u32' ',' 'in_c_u32'
+bfe_testcase ::= bfe_opcode bfe_params
+
+bfi_opcode ::= 'bfi' ( b32 | b64 )
+/* c and d restricted by semantics to 0 to 255 */
+bfi_params ::= 'out_f_type0' ',' 'in_a_type0' ',' 'in_b_type0' ',' 'in_c_u32' ',' 'in_d_u32'
+bfi_testcase ::= bfi_opcode bfi_params
+
+dpXa_type ::= u32 | s32
+
+dp4a_opcode ::= 'dp4a' dpXa_type dpXa_type
+
+/* the abequal constraint says that d is unsigned only if type0 and type1 are u32. Note: we force c to be unsigned always... */
+dp4a_params ::= 'out_d_type0_abequal' ',' 'in_a_b32' ',' 'in_b_b32' ',' 'in_c_b32'
+dp4a_testcase ::= dp4a_opcode dp4a_params
+
+dp2a_opcode ::= 'dp2a' ( hi | lo ) dpXa_type dpXa_type
+dp2a_params ::= dp4a_params
+dp2a_testcase ::= dp2a_opcode dp2a_params
+
+/* extended arithmetic instructions */
+
+cc_type ::= u32 | s32 | u64 | s64
+
+cc_in_params ::= binary_params 'in_ccreg_ccregister'
+cc_inout_params ::= binary_params 'inout_ccreg_ccregister'
+cc_out_params ::= binary_params 'out_ccreg_ccregister'
+
+add_cc_opcode ::= 'add' '.cc' cc_type
+add_cc_testcase ::= add_cc_opcode cc_out_params
+
+addc_opcode_1 ::= 'addc' cc_type
+addc_opcode_1_testcase ::= addc_opcode_1 cc_in_params
+
+addc_opcode_2 ::= 'addc' '.cc' cc_type
+addc_opcode_2_testcase ::= addc_opcode_2 cc_inout_params
+
+addc_opcode ::= addc_opcode_1 | addc_opcode_2
+
+sub_cc_opcode ::= 'sub' '.cc' cc_type
+sub_cc_testcase ::= sub_cc_opcode cc_out_params
+
+subc_opcode_1 ::= 'subc' cc_type
+subc_opcode_2 ::= 'subc' '.cc' cc_type
+subc_opcode ::= subc_opcode_1 | subc_opcode_2
+
+subc_opcode_1_testcase ::= subc_opcode_1 cc_in_params
+subc_opcode_2_testcase ::= subc_opcode_2 cc_inout_params
+
+mad_cc_opcode ::= 'mad' ( hi | lo ) '.cc' cc_type
+mad_cc_params ::= ternary_params 'out_ccreg_ccregister'
+mad_cc_testcase ::= mad_cc_opcode mad_cc_params
+
+madc_opcode_1 ::= 'madc' ( hi | lo ) cc_type
+madc_opcode_2 ::= 'madc' ( hi | lo ) '.cc' cc_type
+madc_opcode ::= madc_opcode_1 | madc_opcode_2
+
+madc_1_params ::= ternary_params 'in_ccreg_ccregister'
+madc_2_params ::= ternary_params 'inout_ccreg_ccregister'
+madc_1_testcase ::= madc_opcode_1 madc_1_params
+madc_2_testcase ::= madc_opcode_2 madc_2_params
+
+/* floating point instructions */
+
+rn ::= '.rn'
+rz ::= '.rz'
+rp ::= '.rp'
+rm ::= '.rm'
+round_mod ::= rn | rz | rp | rm
+
+ftz ::= '.ftz'
+
+testp_op ::= '.finite' | '.infinite' | '.number' | '.notanumber' | '.normal' | '.subnormal'
+
+testp_opcode ::= 'testp' testp_op float
+testp_params ::= 'out_p_pred' ',' 'in_a_type0'
+testp_testcase ::= testp_opcode testp_params
+
+copysign_opcode ::= 'copysign' float
+copysign_testcase ::= copysign_opcode binary_params
+
+f_add_opcode ::= 'add' (round_mod)? (((ftz)? (sat)? f32) | f64)
+f_add_testcase ::= f_add_opcode binary_params
+
+f_sub_opcode ::= 'sub' (round_mod)? (((ftz)? (sat)? f32) | f64)
+f_sub_testcase ::= f_sub_opcode binary_params
+
+f_mul_opcode ::= 'mul' (round_mod)? (((ftz)? (sat)? f32) | f64)
+f_mul_testcase ::= f_mul_opcode binary_params
+
+fma_opcode ::= 'fma' round_mod ( ((ftz)? (sat)? f32) | f64)
+fma_testcase ::= fma_opcode ternary_params
+
+/* doesn't encode 1.x form where round_mod is optional */
+f_mad_opcode ::= 'mad' round_mod (((ftz)? (sat)? f32) | f64)
+f_mad_testcase ::= f_mad_opcode ternary_params
+
+f_div_opcode ::= 'div'  (((('.approx' | '.full' | round_mod)) (ftz)? f32) | round_mod f64)
+f_div_testcase ::= f_div_opcode binary_params
+
+f_abs_opcode ::= 'abs' ((ftz)? f32 | f64)
+f_abs_testcase ::= f_abs_opcode unary_params
+
+f_neg_opcode ::= 'neg' ((ftz)? f32 | f64)
+f_neg_testcase ::= f_neg_opcode unary_params
+
+f_min_opcode ::= 'min' ((ftz)? f32 | f64)
+f_min_testcase ::= f_min_opcode binary_params
+
+f_max_opcode ::= 'max' ((ftz)? f32 | f64)
+f_max_testcase ::= f_max_opcode binary_params
+
+f_rcp_opcode ::= 'rcp'  (((('.approx' | round_mod)) (ftz)? f32) | round_mod f64)
+f_rcp_testcase ::= f_rcp_opcode unary_params
+
+f_rcp_approx_ftz_f64_opcode ::= 'rcp' '.approx' ftz f64
+f_rcp_approx_ftz_f64_testcase ::= f_rcp_approx_ftz_f64_opcode unary_params
+
+sqrt_opcode ::= 'sqrt'  (((('.approx' | round_mod)) (ftz)? f32) | round_mod f64)
+sqrt_testcase ::= sqrt_opcode unary_params
+
+rsqrt_opcode ::= 'rsqrt' '.approx' (((ftz)? f32) | f64)
+rsqrt_testcase ::= rsqrt_opcode unary_params
+
+sin_opcode ::= 'sin' '.approx' (ftz)? f32
+sin_testcase ::= sin_opcode unary_params
+
+cos_opcode ::= 'cos' '.approx' (ftz)? f32
+cos_testcase ::= cos_opcode unary_params
+
+lg2_opcode ::= 'lg2' '.approx' (ftz)? f32
+lg2_testcase ::= lg2_opcode unary_params
+
+ex2_opcode ::= 'ex2' '.approx' (ftz)? f32
+ex2_testcase ::= ex2_opcode unary_params
+
+/* half precision floating point: require sm_53 or later */
+half_float ::= f16 | f16x2
+half_add_opcode ::= 'add' (rn)? (ftz)? (sat)? half_float
+half_add_testcase ::= half_add_opcode binary_params
+
+half_sub_opcode ::= 'sub' (rn)? (ftz)? (sat)? half_float
+half_sub_testcase ::= half_sub_opcode binary_params
+
+half_mul_opcode ::= 'mul' (rn)? (ftz)? (sat)? half_float
+half_mul_testcase ::= half_mul_opcode binary_params
+
+half_fma_opcode ::= 'fma' rn (ftz)? (sat)? half_float
+half_fma_testcase ::= half_fma_opcode ternary_params
+
+half_neg_opcode ::= 'neg' (ftz)? half_float
+half_neg_testcase ::= half_neg_opcode unary_params
+
+half_abs_opcode ::= 'abs' (ftz)? half_float
+half_abs_testcase ::= half_abs_opcode unary_params
+
+
+/* comparison and selection instructions */
+and ::= '.and'
+or ::= '.or'
+xor ::= '.xor'
+
+set_cmpop ::= '.eq' | '.ne' | '.lt' | '.le' | '.gt' | '.ge'
+set_cmpop_unsigned ::= '.lo' | '.ls' | '.hi' | '.hs'
+set_cmpop_unordered ::= '.equ' | '.neu' | '.ltu' | '.leu' | '.gtu' | '.geu' | '.num' | '.nan'
+
+set_boolop ::= and | or | xor
+set_dtype ::= u32 | s32 | f32
+fbus_type ::= binary | signed_unsigned | float
+set_invert ::= '.invert'
+
+/* TODO: invert isn't actually used, so remove it from the grammar */
+
+set_boolop_invert ::= ((set_boolop) set_invert?)
+
+set_binary_suffix ::= (('.eq' | '.ne') set_boolop_invert? set_dtype binary)
+
+set_integer_suffix ::= (set_cmpop set_boolop_invert? set_dtype signed_unsigned) | (set_cmpop_unsigned set_boolop_invert? set_dtype unsigned)
+
+set_float_suffix ::= (set_cmpop | set_cmpop_unordered) set_boolop_invert? (((ftz)? set_dtype f32) | set_dtype f64)
+
+/* TODO: refactor */
+set_opcode ::= 'set' (set_binary_suffix | set_integer_suffix | set_float_suffix)
+
+
+set_binary_suffix_noboolop ::= (('.eq' | '.ne') set_dtype binary)
+set_binary_suffix_boolop ::= (('.eq' | '.ne') set_boolop set_dtype binary)
+
+set_integer_suffix_noboolop ::= (set_cmpop set_dtype signed_unsigned) | (set_cmpop_unsigned set_dtype unsigned)
+set_integer_suffix_boolop ::= (set_cmpop set_boolop set_dtype signed_unsigned) | (set_cmpop_unsigned set_boolop set_dtype unsigned)
+
+set_float_suffix_noboolop ::= (set_cmpop | set_cmpop_unordered) (((ftz)? set_dtype f32) | set_dtype f64)
+set_float_suffix_boolop ::= (set_cmpop | set_cmpop_unordered) set_boolop (((ftz)? set_dtype f32) | set_dtype f64)
+
+set_opcode_1 ::= 'set' (set_binary_suffix_noboolop | set_integer_suffix_noboolop | set_float_suffix_noboolop)
+
+set_opcode_2 ::= 'set' (set_binary_suffix_boolop | set_integer_suffix_boolop | set_float_suffix_boolop)
+
+set_opcode_1_params ::= 'out_d_type0' ',' 'in_a_type1' ',' 'in_b_type1'
+set_opcode_1_testcase ::= set_opcode_1 set_opcode_1_params
+
+set_opcode_2_params ::= set_opcode_1_params ',' '!'? 'in_c_pred'
+set_opcode_2_testcase ::= set_opcode_2 set_opcode_2_params
+
+/* TODO: redefine set in terms of the set boolop/noboolop operators */
+
+setp_binary_suffix ::= (('.eq' | '.ne') set_boolop_invert? binary)
+setp_integer_suffix ::= (set_cmpop set_boolop_invert? signed_unsigned | set_cmpop_unsigned set_boolop_invert? unsigned)
+setp_float_suffix ::= (( set_cmpop | set_cmpop_unordered ) set_boolop_invert? (((ftz)? f32) | f64))
+setp_opcode ::= 'setp' ( setp_integer_suffix | setp_binary_suffix | setp_float_suffix )
+
+
+setp_binary_suffix_noboolop ::= (('.eq' | '.ne') binary)
+setp_integer_suffix_noboolop ::= (set_cmpop signed_unsigned | set_cmpop_unsigned unsigned)
+setp_float_suffix_noboolop ::= (( set_cmpop | set_cmpop_unordered ) (((ftz)? f32) | f64))
+
+setp_binary_suffix_boolop ::= (('.eq' | '.ne') set_boolop binary)
+setp_integer_suffix_boolop ::= (set_cmpop set_boolop signed_unsigned | set_cmpop_unsigned set_boolop unsigned)
+setp_float_suffix_boolop ::= (( set_cmpop | set_cmpop_unordered ) set_boolop (((ftz)? f32) | f64))
+
+
+setp_opcode_1_params ::= 'out_p_pred' ('|' 'out_q_pred')? ','  'in_a_type0' ',' 'in_b_type0'
+setp_opcode_2_params ::= setp_opcode_1_params ',' '!'? 'in_c_pred'
+setp_opcode_1 ::= 'setp' (setp_binary_suffix_noboolop | setp_integer_suffix_noboolop | setp_float_suffix_noboolop)
+setp_opcode_1_testcase ::= setp_opcode_1 setp_opcode_1_params
+
+setp_opcode_2 ::= 'setp' (setp_binary_suffix_boolop | setp_integer_suffix_boolop | setp_float_suffix_boolop)
+setp_opcode_2_testcase ::= setp_opcode_2 setp_opcode_2_params
+
+/* TODO: redefine setp in terms of the set boolop/noboolop operators */
+
+
+selp_opcode ::= 'selp' fbus_type
+selp_params ::= binary_params ',' 'in_c_pred'
+selp_testcase ::= selp_opcode selp_params
+
+slct_opcode ::= 'slct' ((ftz)? fbus_type f32 | fbus_type s32)
+slct_params ::= binary_params ',' 'in_c_type1'
+slct_testcase ::= slct_opcode slct_params
+
+/* half-precision set and setp */
+
+half_set_cmpop ::= set_cmpop | set_cmpop_unordered
+
+half_set_boolop ::= set_boolop
+half_set_stype ::= binary | unsigned | signed | float | f16
+
+
+half_set_op1 ::= 'set' half_set_cmpop ftz? f16 half_set_stype
+@(CONSTRAINT half_set_op1 (imp (not (eq ftz '')) (in half_set_stype '.f16' '.f16x2')))
+
+half_set_op2 ::= 'set' half_set_cmpop half_set_boolop ftz? f16 half_set_stype
+@(CONSTRAINT half_set_op2 (imp (not (eq ftz '')) (in half_set_stype '.f16' '.f16x2')))
+
+half_set_dtype1 ::= u16 | s16 | u32 | s32
+half_set_op3 ::= 'set' half_set_cmpop (ftz)? half_set_dtype1 f16
+half_set_op4 ::= 'set' half_set_cmpop half_set_boolop (ftz)? half_set_dtype1 f16
+
+half_set_dtype2 ::= f16x2 | u32 | s32
+half_set_op5 ::= 'set' half_set_cmpop (ftz)? half_set_dtype2 f16x2
+half_set_op6 ::= 'set' half_set_cmpop half_set_boolop (ftz)? half_set_dtype2 f16x2
+
+half_set_opcode_noboolop ::= half_set_op1 | half_set_op3 | half_set_op5
+half_set_opcode_boolop ::= half_set_op2 | half_set_op4 | half_set_op6
+
+half_set_noboolop_params ::= 'out_d_type0' ',' 'in_a_type1' ',' 'in_b_type1'
+half_set_noboolop_testcase ::= half_set_opcode_noboolop half_set_noboolop_params
+
+half_set_boolop_params ::= half_set_noboolop_params ',' '!'? 'in_c_pred'
+half_set_boolop_testcase ::= half_set_opcode_boolop half_set_boolop_params
+
+half_set_opcode ::= half_set_opcode_noboolop | half_set_opcode_boolop
+
+half_setp_opcode1 ::= 'setp' half_set_cmpop (ftz)? f16
+half_setp_opcode2 ::= 'setp' half_set_cmpop half_set_boolop (ftz)? f16
+
+half_setp_opcode3 ::= 'setp' half_set_cmpop (ftz)? f16x2
+half_setp_opcode4 ::= 'setp' half_set_cmpop half_set_boolop (ftz)? f16x2
+
+/* actually a and b can be b16 too ... */
+half_setp_1_params ::= 'out_p_pred' ',' 'in_a_f16' ',' 'in_b_f16'
+half_setp_2_params ::= half_setp_1_params ',' '!'? 'in_c_pred'
+
+/* yes, a and b have b32 */
+/* note p and q have different meanings for f16x2 than usual setp meaning */
+half_setp_3_params ::= 'out_p_pred' '|' 'out_q_pred' ',' 'in_a_b32' ',' 'in_b_b32'
+half_setp_4_params ::= half_setp_3_params ',' '!'? 'in_c_pred'
+
+half_setp_1_testcase ::= half_setp_opcode1 half_setp_1_params
+half_setp_2_testcase ::= half_setp_opcode2 half_setp_2_params
+half_setp_3_testcase ::= half_setp_opcode3 half_setp_3_params
+half_setp_4_testcase ::= half_setp_opcode4 half_setp_4_params
+
+half_setp_opcode ::= half_setp_opcode1 | half_setp_opcode2 | half_setp_opcode3 | half_setp_opcode4
+
+/* logic and shift instructions */
+logic_type ::= pred | binary
+
+and_opcode ::= 'and' logic_type
+and_testcase ::= and_opcode binary_params
+
+or_opcode ::= 'or' logic_type
+or_testcase ::= or_opcode binary_params
+
+xor_opcode ::= 'xor' logic_type
+xor_testcase ::= xor_opcode binary_params
+
+not_opcode ::= 'not' logic_type
+not_testcase ::= not_opcode unary_params
+
+cnot_opcode ::= 'cnot' binary
+cnot_testcase ::= cnot_opcode unary_params
+
+immLut_values ::= '0x' ([0-9a-f] | [1-9a-f] [0-9a-f])
+
+lop3_immLut_opcode ::= 'lop3_' immLut_values b32
+lop3_opcode ::= 'lop3' b32
+lop3_params ::= ternary_params ',' 'in_immLut_u8_immediate'
+lop3_testcase ::= lop3_opcode lop3_params
+
+shf_opcode ::= 'shf' ('.l' | '.r') ('.clamp' | '.wrap') b32
+shf_params ::= binary_params ',' 'in_c_u32'
+shf_testcase ::= shf_opcode shf_params
+
+shift_params ::= unary_params ',' 'in_b_u32'
+
+shl_opcode ::= 'shl' binary
+shl_testcase ::= shl_opcode shift_params
+
+shr_opcode ::= 'shr' (binary | signed_unsigned)
+shr_testcase ::= shr_opcode shift_params
+
+
+/* data movement instructions */
+/* mov really depends on the type of its operands */
+mov_opcode ::= 'mov' (fbus_type | pred)
+mov_params ::= unary_params
+mov_testcase ::= mov_opcode mov_params
+
+mov_pack_unpack_opcode ::= 'mov' binary
+mov_pack_unpack_4_opcode ::= 'mov' (binary - '.b16')
+vector_2_params_in ::= '{' 'in_x_type0_vector2' ',' 'in_y_type0_vector2' '}'
+vector_2_params_out ::= '{' 'out_x_type0_vector2' ',' 'out_y_type0_vector2' '}'
+
+vector_4_params_in ::= '{' 'in_x_type0_vector4' ',' 'in_y_type0_vector4' ',' 'in_w_type0_vector4'',' 'in_z_type0_vector4'   '}'
+vector_4_params_out ::= '{' 'out_x_type0_vector4' ',' 'out_y_type0_vector4' ',' 'out_w_type0_vector4'',' 'out_z_type0_vector4' '}'
+
+
+/* TODO: mark out as being a packed value */
+mov_unpack_2_params ::= vector_2_params_out ',' 'in_reg_type0'
+mov_pack_2_params ::=  'out_reg_type0' ',' vector_2_params_in
+
+mov_unpack_4_params ::= vector_4_params_out ',' 'in_reg_type0'
+mov_pack_4_params ::=  'out_reg_type0' ',' vector_4_params_in
+
+mov_pack_2_testcase ::= mov_pack_unpack_opcode mov_pack_2_params
+mov_unpack_2_testcase ::= mov_pack_unpack_opcode mov_unpack_2_params
+
+mov_pack_4_testcase ::= mov_pack_unpack_4_opcode mov_pack_4_params
+mov_unpack_4_testcase ::= mov_pack_unpack_4_opcode mov_unpack_4_params
+
+/* remove shfl without sync */
+shfl_opcode ::= 'shfl' '.sync' ('.up' | '.down' | '.bfly' | '.idx') '.b32'
+
+/* todo: constraints on values for b, c and membermask*/
+shfl_params_1 ::= 'out_d_type0_perthread' ',' 'in_a_type0_perthread' ',' 'in_b_type0_perthread' ',' 'in_c_type0_perthread' ',' 'in_membermask_type0'
+shfl_params_2 ::= 'out_d_type0_perthread' '|' 'out_p_pred_perthread' ',' 'in_a_type0_perthread' ',' 'in_b_type0_perthread' ',' 'in_c_type0_perthread' ',' 'in_membermask_type0'
+
+shfl_testcase_1 ::= shfl_opcode shfl_params_1
+shfl_testcase_2 ::= shfl_opcode shfl_params_2
+
+shfl_testcase ::= shfl_testcase_1 | shfl_testcase_2
+
+prmt_opcode ::= 'prmt' (('.f4e' | '.b4e' | '.rc8' | '.ecl' | '.ecr' | '.rc16'))? b32
+prmt_params ::= ternary_params
+prmt_testcase ::= prmt_opcode prmt_params
+
+/* TODO: Documentation fix: when '.weak' is explicitly specified, it behaves syntactically like .volatile/.relaxed/.acquire */
+
+ptx_addr_space ::= '.const' | '.global' | '.local' | '.param' | '.shared'
+
+ld_ss_weak ::= '.const' | '.global' | '.local' | '.param' | '.shared'
+ld_ss_other ::= '.global' | '.shared'
+ld_cop ::= '.ca' | '.cg' | '.cs' | '.lu' | '.cv'
+ld_scope ::= '.cta' | '.gpu' | '.sys'
+ld_vec ::= '.v2' | '.v4'
+ld_type ::= (b8 | u8 | s8 | fbus_type)
+
+/* TODO: fix naming in constraints */
+ld_weak ::= '.weak'?
+ld_weak_cop ::= ld_cop?
+ld_weak_ss ::= ld_ss_weak?
+ld_opcode_weak_prefix ::= 'ld' ld_weak ld_weak_ss ld_weak_cop
+
+/* See doc fix above, this is not documented */
+@(CONSTRAINT ld_opcode_weak_prefix (imp (not (eq ld_weak '')) (eq ld_weak_cop '')))
+@(CONSTRAINT ld_opcode_weak_prefix (imp (not (eq ld_weak '')) (in ld_weak_ss '' '.global' '.shared')))
+
+
+ld_type_v2 ::= ld_type /* originally to selectively deselect 128-bit types, but now that they're supported, keep anyways */
+ld_type_v4 ::= ld_type - ('.b64' | '.u64' | '.s64' | '.f64')
+
+ld_opcode_weak_nonvec ::=  ld_opcode_weak_prefix ld_type
+
+ld_opcode_weak_v2 ::= ld_opcode_weak_prefix '.v2' ld_type_v2
+ld_opcode_weak_v4 ::= ld_opcode_weak_prefix '.v4' ld_type_v4
+
+ld_opcode_weak ::= ld_opcode_weak_nonvec | ld_opcode_weak_v2 | ld_opcode_weak_v4
+
+ld_opcode_volatile_prefix ::= 'ld' '.volatile' ld_ss_other?
+ld_opcode_volatile_nonvec ::= ld_opcode_volatile_prefix ld_type
+ld_opcode_volatile_v2 ::= ld_opcode_volatile_prefix '.v2' ld_type_v2
+ld_opcode_volatile_v4 ::= ld_opcode_volatile_prefix '.v4' ld_type_v4
+
+ld_opcode_volatile ::= ld_opcode_volatile_nonvec | ld_opcode_volatile_v2 | ld_opcode_volatile_v4
+
+ld_opcode_relacq_prefix ::= 'ld' ('.relaxed' | '.acquire') ld_scope ld_ss_other?
+ld_opcode_relacq_nonvec ::= ld_opcode_relacq_prefix ld_type
+ld_opcode_relacq_v2 ::= ld_opcode_relacq_prefix '.v2' ld_type_v2
+ld_opcode_relacq_v4 ::= ld_opcode_relacq_prefix '.v4' ld_type_v4
+ld_opcode_relacq ::= ld_opcode_relacq_nonvec | ld_opcode_relacq_v2 | ld_opcode_relacq_v4
+
+ld_addr ::= '[' 'in_a_type0_addr' ']'
+ld_nonvec_params ::= 'out_d_type0' ',' ld_addr
+ld_vec_v2_params ::= '{' 'out_x_type0' ',' 'out_y_type0' '}' ',' '[' 'in_a_type0_addr_vector2src' ']'
+ld_vec_v4_params ::= '{' 'out_x_type0' ',' 'out_y_type0' ',' 'out_w_type0'',' 'out_z_type0' '}' ',' '[' 'in_a_type0_addr_vector4src' ']'
+
+ld_nonvec_testcase ::= ( ld_opcode_weak_nonvec | ld_opcode_volatile_nonvec | ld_opcode_relacq_nonvec ) ld_nonvec_params
+
+ld_v2_testcase ::= ( ld_opcode_weak_v2 | ld_opcode_volatile_v2 | ld_opcode_relacq_v2 ) ld_vec_v2_params
+ld_v4_testcase ::= ( ld_opcode_weak_v4 | ld_opcode_volatile_v4 | ld_opcode_relacq_v4 ) ld_vec_v4_params
+
+ld_opcode ::= ld_opcode_weak | ld_opcode_volatile | ld_opcode_relacq
+
+ld_global_nc_opcode_prefix ::= 'ld' '.global' ((ld_cop - ('.lu' | '.cv')))? '.nc'
+ld_global_nc_opcode_nonvec ::= ld_global_nc_opcode_prefix ld_type
+ld_global_nc_opcode_vec_v2 ::= ld_global_nc_opcode_prefix '.v2' ld_type_v2
+ld_global_nc_opcode_vec_v4 ::= ld_global_nc_opcode_prefix '.v4' ld_type_v4
+
+ld_global_nc_opcode_vec ::= ld_global_nc_opcode_vec_v2 | ld_global_nc_opcode_vec_v4
+ld_global_nc_opcode ::= ld_global_nc_opcode_nonvec | ld_global_nc_opcode_vec
+
+ld_global_nc_addr ::= '[' 'in_a_type0_addr' ']'
+
+ld_global_nc_nonvec_params ::= 'out_d_type0' ',' ld_global_nc_addr
+
+ld_global_nc_vec_v2_params ::= '{' 'out_x_type0' ',' 'out_y_type0' '}' ','  '[' 'in_a_type0_addr_vector2src' ']'
+ld_global_nc_vec_v4_params ::= '{' 'out_x_type0' ',' 'out_y_type0' ',' 'out_w_type0'',' 'out_z_type0' '}' ',' '[' 'in_a_type0_addr_vector4src' ']'
+
+ld_global_nc_nonvec_testcase ::= ld_global_nc_opcode_nonvec ld_global_nc_nonvec_params
+ld_global_nc_vec_testcase ::= ld_global_nc_opcode_vec_v2 ld_global_nc_vec_v2_params | ld_global_nc_opcode_vec_v4 ld_global_nc_vec_v4_params
+
+
+ldu_opcode_nonvec ::= 'ldu' ('.global')? ld_type
+
+ldu_opcode_v2 ::= 'ldu' ('.global')? '.v2' ld_type_v2
+ldu_opcode_v4 ::= 'ldu' ('.global')? '.v4' ld_type_v4
+
+ldu_opcode ::= ldu_opcode_nonvec | ldu_opcode_v2 | ldu_opcode_v4
+
+ldu_addr ::= '[' 'in_a_type0_addr' ']'
+
+ldu_nonvec_params ::= 'out_d_type0' ',' ldu_addr
+
+ldu_v2_params ::= '{' 'out_x_type0' ',' 'out_y_type0' '}' ',' '[' 'in_a_type0_addr_vector2src' ']'
+ldu_v4_params ::= '{' 'out_x_type0' ',' 'out_y_type0' ',' 'out_w_type0'',' 'out_z_type0' '}' ',' '[' 'in_a_type0_addr_vector4src' ']'
+
+ldu_nonvec_testcase ::= ldu_opcode_nonvec ldu_nonvec_params
+ldu_v2_testcase ::= ldu_opcode_v2 ldu_v2_params
+ldu_v4_testcase ::= ldu_opcode_v4 ldu_v4_params
+
+st_ss ::= '.global' | '.local' | '.param' | '.shared'
+st_cop ::= '.wb' | '.cg' | '.cs' | '.wt'
+st_scope ::= '.cta' | '.gpu' | '.sys'
+st_vec ::= '.v2' | '.v4'
+st_type ::= (b8 | u8 | s8 | fbus_type)
+
+st_vec_suffix ::= (st_ss)? st_vec st_type
+st_ss_opt ::= st_ss?
+st_nonvec_suffix ::= st_ss_opt st_type
+
+/* really a limitation of constraints */
+st_weak ::= '.weak'?
+st_weak_cop ::= st_cop?
+
+st_nonvec_opcode_weak ::= 'st' st_weak st_ss_opt st_weak_cop st_type
+
+/* not documented, doc fix */
+@(CONSTRAINT st_nonvec_opcode_weak (imp (eq st_weak '.weak') (not (in st_ss_opt '.local' '.param') )))
+@(CONSTRAINT st_nonvec_opcode_weak (imp (eq st_weak '.weak') (eq st_weak_cop '') ))
+
+st_rr ::= '.relaxed' | '.release'
+
+st_nonvec_opcode_volatile ::= 'st' '.volatile' st_ss_opt st_type
+@(CONSTRAINT st_nonvec_opcode_volatile (not (in st_ss_opt '.local' '.param')))
+
+st_nonvec_opcode_rr ::= 'st' st_rr st_scope st_ss_opt st_type
+@(CONSTRAINT st_nonvec_opcode_rr (not (in st_ss_opt '.local' '.param')))
+
+st_opcode_nonvec ::= st_nonvec_opcode_weak | st_nonvec_opcode_volatile | st_nonvec_opcode_rr
+
+st_nonvec_params ::= '[' 'in_a_type0_addr_mod' ']' ',' 'in_b_type0'
+
+st_nonvec_testcase ::= st_opcode_nonvec st_nonvec_params
+
+/* TODO: 128-bit types */
+st_v2_types ::= (st_type - ('.f64' | '.b64' | '.u64' | '.s64'))
+st_vec_v2_opcode_weak ::= 'st' st_weak st_ss_opt st_weak_cop '.v2' st_v2_types
+
+@(CONSTRAINT st_vec_v2_opcode_weak (imp (eq st_weak '.weak') (not (in st_ss_opt '.local' '.param') )))
+@(CONSTRAINT st_vec_v2_opcode_weak (imp (eq st_weak '.weak') (eq st_weak_cop '') ))
+
+/* TODO: 128-bit types */
+st_v4_types ::= (st_type - ('.f64' | '.b64' | '.u64' | '.s64' | '.s32' | '.u32' | '.b32' | '.f32'))
+st_vec_v4_opcode_weak ::= 'st' st_weak st_ss_opt st_weak_cop '.v4' st_v4_types
+
+
+@(CONSTRAINT st_vec_v4_opcode_weak (imp (eq st_weak '.weak') (not (in st_ss_opt '.local' '.param') )))
+@(CONSTRAINT st_vec_v4_opcode_weak (imp (eq st_weak '.weak') (eq st_weak_cop '') ))
+
+/* if x and y are named b1 and b2, nvcc gives a weird error, and then if %_b1 => b1 in the PTX */
+st_vec_v2_params ::= '[' 'in_a_type0_addr_mod_vector2dst' ']' ',' '{' 'in_x_type0' ',' 'in_y_type0' '}'
+st_vec_v4_params ::= '[' 'in_a_type0_addr_mod_vector4dst' ']' ',' '{' 'in_x_type0' ',' 'in_y_type0' ',' 'in_w_type0' ',' 'in_z_type0' '}'
+
+st_vec_v2_opcode_volatile ::= 'st' '.volatile' st_ss_opt '.v2' st_v2_types
+st_vec_v4_opcode_volatile ::= 'st' '.volatile' st_ss_opt '.v4' st_v4_types
+
+@(CONSTRAINT st_vec_v2_opcode_volatile (not (in st_ss_opt '.local' '.param')))
+@(CONSTRAINT st_vec_v4_opcode_volatile (not (in st_ss_opt '.local' '.param')))
+
+st_vec_v2_opcode_rr ::= 'st' st_rr st_scope st_ss_opt '.v2' st_v2_types
+st_vec_v4_opcode_rr ::= 'st' st_rr st_scope st_ss_opt '.v4' st_v4_types
+@(CONSTRAINT st_vec_v2_opcode_rr (not (in st_ss_opt '.local' '.param')))
+@(CONSTRAINT st_vec_v4_opcode_rr (not (in st_ss_opt '.local' '.param')))
+
+st_vec_opcode_v2 ::= st_vec_v2_opcode_weak | st_vec_v2_opcode_volatile | st_vec_v2_opcode_rr
+st_vec_opcode_v4 ::= st_vec_v4_opcode_weak | st_vec_v4_opcode_volatile | st_vec_v4_opcode_rr
+
+st_vec_v2_testcase ::= st_vec_opcode_v2 st_vec_v2_params
+st_vec_v4_testcase ::= st_vec_opcode_v4 st_vec_v4_params
+
+st_opcode ::= st_opcode_nonvec | st_vec_opcode_v2 | st_vec_opcode_v4
+
+prefetch_opcode ::= 'prefetch' (('.global' | '.local'))? ('.L1' | '.L2')
+prefetchu_opcode ::= 'prefetchu' '.L1'
+/* this only handles one addressing mode, see 6.4.1 */
+prefetchu_params ::= '[' 'in_a_u32_addr' ']'
+prefetchu_testcase ::= prefetchu_opcode prefetchu_params
+prefetch_testcase ::= prefetch_opcode prefetchu_params
+
+rt_addr_space ::= '.const' | '.global' | '.local' | '.shared'
+isspace_opcode ::= 'isspacep' rt_addr_space
+isspace_params ::= 'out_p_pred' ',' 'in_a_u32_addr'
+isspace_testcase ::= isspace_opcode isspace_params
+
+cvta_opcode ::= 'cvta' rt_addr_space (u32 | u64)
+
+/* we're really interested in the address, not the contents */
+/* also, due asm turns everything generic anyways, so we're just undoing that */
+
+cvta_params ::= 'out_p_type0' ',' 'in_a_type0_addr'
+cvta_testcase ::= cvta_opcode cvta_params
+
+cvta_to_opcode ::= 'cvta' '.to' rt_addr_space (u32 | u64)
+
+/* same as cvta */
+/* also, due to asm turning everything generic, we may want to avoid converting this twice */
+cvta_to_params ::= 'out_p_type0' ',' 'in_a_type0_addr'
+cvta_to_testcase ::= cvta_to_opcode cvta_to_params
+
+/* cvt */
+/* see cvt_check.py for a saner version of the constraints */
+/* TODO: understand sat for i-to-f conversions */
+irnd ::= '.rni' | '.rzi' | '.rmi' | '.rpi'
+
+/* cvt between out of range are disallowed ...*/
+cvt_dtype ::= float | f16 | unsigned | signed | u8 | s8
+cvt_atype ::= float | f16 | unsigned | signed | u8 | s8
+
+/* irnd rounding required for float-to-integer */
+cvt_1_atype_float ::= (float | f16)
+cvt_ftz ::= (ftz)?
+cvt_sat ::= (sat)?
+cvt_opcode_f2i ::= 'cvt' irnd cvt_ftz cvt_sat (cvt_dtype - (float | f16)) cvt_1_atype_float
+
+@(CONSTRAINT cvt_opcode_f2i (imp (eq cvt_ftz '.ftz') (eq cvt_1_atype_float '.f32')))
+
+/* irnd rounding only allowed for float-to-float *same* size */
+cvt_1_dtype_f ::= (float | f16)
+cvt_opcode_f2fsz ::= 'cvt' irnd cvt_ftz cvt_sat  cvt_1_dtype_f cvt_1_atype_float
+
+/* ftz only allowed for f32 source/destination */
+@(CONSTRAINT cvt_opcode_f2fsz (imp (eq cvt_ftz '.ftz') (or (eq cvt_1_atype_float '.f32') (eq cvt_1_dtype_f '.f32'))))
+@(CONSTRAINT cvt_opcode_f2fsz (eq cvt_1_dtype_f cvt_1_atype_float))
+
+/* irnd illegal for all others */
+cvt_opcode_others ::= 'cvt' cvt_ftz cvt_sat cvt_dtype cvt_atype
+
+@(CONSTRAINT cvt_opcode_others (imp (eq cvt_ftz '.ftz') (or (eq cvt_dtype '.f32') (eq cvt_atype '.f32'))))
+
+@(CONSTRAINT cvt_opcode_others (imp (in cvt_atype '.f64' '.f32' '.f16') (not (in cvt_dtype '.s64' '.s32' '.s16' '.s8' '.u64' '.u32' '.u16' '.u8'))))
+
+/* round_mod required for loss-of-precision in float */
+@(CONSTRAINT cvt_opcode_others (imp (in cvt_atype '.f64') (not (in cvt_dtype '.f32' '.f16'))))
+@(CONSTRAINT cvt_opcode_others (imp (in cvt_atype '.f32') (not (in cvt_dtype '.f16'))))
+
+
+/* all integer to float conversions require a round mod */
+@(CONSTRAINT cvt_opcode_others (imp (in cvt_atype '.u64' '.u32' '.u16' '.u8'
+                                                  '.s64' '.s32' '.s16' '.s8')
+                               (not (in cvt_dtype '.f64' '.f32' '.f16'))))
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.u64'))
+                                 (in cvt_dtype '.u32' '.u16' '.u8' '.s64' '.s32' '.s16' '.s8')))
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.u32'))
+                                 (in cvt_dtype '.u16' '.u8' '.s32' '.s16' '.s8')))
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.u16'))
+                                 (in cvt_dtype '.u8' '.s16' '.s8')))
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.u8'))
+                                 (in cvt_dtype '.s8')))
+
+/* conversion to signed to unsigned supports saturate for all unsigned types since unsigned is not a superset of any signed type */
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.s64'))
+                                 (in cvt_dtype '.u64' '.u32' '.u16' '.u8' '.s32' '.s16' '.s8')))
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.s32'))
+                                 (in cvt_dtype '.u64' '.u32' '.u16' '.u8' '.s16' '.s8')))
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.s16'))
+                                 (in cvt_dtype  '.s8' '.u64' '.u32' '.u16' '.u8')))
+
+@(CONSTRAINT cvt_opcode_others (imp (and (eq cvt_sat '.sat') (eq cvt_atype '.s8'))
+                                 (in cvt_dtype '.u64' '.u32' '.u16' '.u8')))
+
+
+cvt_opcode_1 ::= cvt_opcode_f2i | cvt_opcode_others | cvt_opcode_f2fsz
+
+cvt_2_dtype_float ::= (float | f16)
+
+/* round-mod required for integer-to-float conversions */
+cvt_opcode_2 ::= 'cvt' round_mod cvt_ftz cvt_sat cvt_2_dtype_float cvt_atype
+
+/* ftz only for f32 */
+@(CONSTRAINT cvt_opcode_2 (imp (eq cvt_ftz '.ftz') (or (eq cvt_2_dtype_float '.f32') (eq cvt_atype '.f32'))))
+
+/* round-mod required for float-to-float that result in loss of precision */
+@(CONSTRAINT cvt_opcode_2 (imp (eq cvt_atype '.f64') (in cvt_2_dtype_float '.f32' '.f16')))
+@(CONSTRAINT cvt_opcode_2 (imp (eq cvt_atype '.f32') (in cvt_2_dtype_float '.f16')))
+@(CONSTRAINT cvt_opcode_2 (not (eq cvt_atype '.f16')))
+
+/* round-mod illegal for float-to-float when no loss of precision is involved  ("all other instances")*/
+@(CONSTRAINT cvt_opcode_2 (imp (eq cvt_2_dtype_float '.f64') (not (in cvt_atype '.f32' '.f16'))))
+@(CONSTRAINT cvt_opcode_2 (imp (eq cvt_2_dtype_float '.f32') (not (in cvt_atype '.f16'))))
+
+/* TODO: Refactor */
+cvt_opcode ::= cvt_opcode_1 | cvt_opcode_2
+
+cvt_params ::= 'out_d_type0' ',' 'in_a_type1'
+cvt_testcase ::= cvt_opcode cvt_params
+
+/* used for checking only */
+cvt_opcode_all ::= 'cvt' (irnd | round_mod)? cvt_ftz cvt_sat cvt_dtype cvt_atype
+
+/* cvt pack */
+
+cvt_pack_convertType ::= u16 | s16
+cvt_pack_abType ::= s32
+
+cvt_pack_opcode_1 ::= 'cvt' '.pack' sat cvt_pack_convertType cvt_pack_abType
+cvt_pack_params_1 ::= 'out_d_u32' ',' 'in_a_type1' ',' 'in_b_type1'
+cvt_pack_1_testcase ::= cvt_pack_opcode_1 cvt_pack_params_1
+
+cvt_pack_convertType2 ::= u2 | s2 | u4 | s4 | u8 | s8
+cvt_pack_opcode_2 ::= 'cvt' '.pack' sat cvt_pack_convertType2 cvt_pack_abType b32
+cvt_pack_params_2 ::= 'out_d_u32' ',' 'in_a_type1' ',' 'in_b_type1' ',' 'in_c_type2'
+cvt_pack_2_testcase ::= cvt_pack_opcode_2 cvt_pack_params_2
+
+cvt_pack_opcode ::= cvt_pack_opcode_1 | cvt_pack_opcode_2
+
+/* texture instructions */
+
+tex_geom_xd ::= '.1d' | '.2d' | '.3d' | '.a1d' | '.a2d'
+tex_geom_cube ::= '.cube' | '.acube'
+tex_geom_sampler ::= '.2dms' | '.a2dms'
+
+tex_geom ::= tex_geom_xd | tex_geom_cube | tex_geom_sampler
+tex_geom_nocube ::= tex_geom - ( '.cube' | '.acube' )
+tex_dtype ::= u32 | s32 | f16 | f32
+tex_ctype ::= s32 | f32
+
+/* TODO: explicit sampler param b */
+
+tex_e_vector_param ::= (',' 'in_e_s32_vector_coord' )?
+tex_f_param ::= (',' 'in_f_f32')
+tex_sampler_param ::= (',' 'in_b_samplerref')? /* not sure how to create samplers in CUDA proper */
+
+/* p was added > 10.2 */
+tex_dstp_param ::= ('|' 'out_p_pred' )?
+
+
+tex_opcode_basic_params ::= 'out_d_type0_vector' ',' '[' 'in_a_texref' ',' 'in_c_type1_vector_coord' ']'
+
+tex_opcode_e_params ::= tex_opcode_basic_params tex_e_vector_param
+tex_opcode_f_params ::= tex_opcode_basic_params tex_f_param?
+
+/* tex_f_param is not optional here because ef_params is used for depth */
+tex_opcode_ef_params ::= tex_opcode_basic_params tex_e_vector_param tex_f_param
+
+/* sampler coordinates are s32 */
+/* cubemap coordinates are f32 */
+/* e is not supported for cubemaps */
+/* f is not supported for samplers and .3d*/
+
+tex_opcode_1_xd ::= 'tex' tex_geom_xd '.v4' tex_dtype tex_ctype
+tex_opcode_1_xd_depth ::= 'tex' (tex_geom_xd - '.3d') '.v4' tex_dtype f32
+tex_opcode_1_cube ::= 'tex' tex_geom_cube '.v4' tex_dtype f32
+tex_opcode_1_sampler ::= 'tex' tex_geom_sampler '.v4' tex_dtype s32
+
+/* this will contain duplicate opcodes that will be eliminated during counting */
+tex_opcode_1 ::= tex_opcode_1_xd | tex_opcode_1_xd_depth | tex_opcode_1_cube | tex_opcode_1_sampler
+
+tex_opcode_1_testcase ::= tex_opcode_1_xd tex_opcode_e_params | tex_opcode_1_xd_depth tex_opcode_ef_params | tex_opcode_1_cube tex_opcode_f_params | tex_opcode_1_sampler tex_opcode_e_params
+
+tex_opcode_2_xd ::= 'tex' tex_geom_xd '.v2' f16x2 tex_ctype
+tex_opcode_2_xd_depth ::= 'tex' (tex_geom_xd - '.3d') '.v2' f16x2 f32
+tex_opcode_2_cube ::= 'tex' tex_geom_cube '.v2' f16x2 f32
+tex_opcode_2_sampler ::= 'tex' tex_geom_sampler '.v2' f16x2 s32
+
+/* TODO: remove duplicates */
+/* this will contain duplicate opcodes that will be eliminated during counting */
+tex_opcode_2 ::= tex_opcode_2_xd | tex_opcode_2_xd_depth | tex_opcode_2_cube | tex_opcode_2_sampler
+
+tex_opcode_2_testcase ::= tex_opcode_2_xd tex_opcode_e_params | tex_opcode_2_xd_depth tex_opcode_ef_params | tex_opcode_2_cube tex_opcode_f_params | tex_opcode_2_sampler tex_opcode_e_params
+
+/* TODO: setup an _all for texture */
+
+tex_opcode_3_base_xd ::= 'tex' '.base' tex_geom_xd '.v4' tex_dtype tex_ctype
+tex_opcode_3_base_xd_depth ::= 'tex' '.base' (tex_geom_xd - '.3d') '.v4' tex_dtype f32
+tex_opcode_3_base_cube ::= 'tex' '.base' tex_geom_cube '.v4' tex_dtype f32
+tex_opcode_3_base_sampler ::= 'tex' '.base' tex_geom_sampler '.v4' tex_dtype s32
+
+tex_opcode_3_base ::= tex_opcode_3_base_xd | tex_opcode_3_base_xd_depth | tex_opcode_3_base_cube | tex_opcode_3_base_sampler
+tex_opcode_3_base_testcase ::= tex_opcode_3_base_xd tex_opcode_e_params | tex_opcode_3_base_xd_depth tex_opcode_ef_params | tex_opcode_3_base_cube tex_opcode_f_params | tex_opcode_3_base_sampler tex_opcode_e_params
+
+tex_opcode_3_level_xd ::= 'tex' '.level' tex_geom_xd '.v4' tex_dtype tex_ctype
+tex_opcode_3_level_xd_depth ::= 'tex' '.level' (tex_geom_xd - '.3d') '.v4' tex_dtype f32
+tex_opcode_3_level_cube ::= 'tex' '.level' tex_geom_cube '.v4' tex_dtype f32
+/* sampler not supported for level */
+tex_opcode_3_level ::= tex_opcode_3_level_xd | tex_opcode_3_level_xd_depth | tex_opcode_3_level_cube
+
+tex_opcode_level_params ::= tex_opcode_basic_params ',' 'in_lod_type1'
+tex_opcode_level_e_params ::= tex_opcode_level_params tex_e_vector_param
+tex_opcode_level_f_params ::= tex_opcode_level_params tex_f_param?
+tex_opcode_level_ef_params ::= tex_opcode_level_params tex_e_vector_param tex_f_param
+
+tex_opcode_3_level_testcase ::= tex_opcode_3_level_xd tex_opcode_level_e_params | tex_opcode_3_level_xd_depth tex_opcode_level_ef_params | tex_opcode_3_level_cube tex_opcode_level_f_params
+
+
+tex_opcode_3_grad_xd ::= 'tex' '.grad' tex_geom_xd '.v4' tex_dtype tex_ctype
+tex_opcode_3_grad_xd_depth ::= 'tex' '.grad' (tex_geom_xd - '.3d') '.v4' tex_dtype f32
+tex_opcode_3_grad_cube ::= 'tex' '.grad' tex_geom_cube '.v4' tex_dtype f32
+/* sampler not supported for grad */
+tex_opcode_3_grad ::= tex_opcode_3_grad_xd | tex_opcode_3_grad_xd_depth | tex_opcode_3_grad_cube
+tex_opcode_grad_params ::= tex_opcode_basic_params ',' 'in_dPdx_f32_vector_coord' ',' 'in_dPdy_f32_vector_coord'
+tex_opcode_grad_e_params ::= tex_opcode_grad_params tex_e_vector_param
+tex_opcode_grad_f_params ::= tex_opcode_grad_params tex_f_param?
+tex_opcode_grad_ef_params ::= tex_opcode_grad_params tex_e_vector_param tex_f_param
+
+tex_opcode_3_grad_testcase ::= tex_opcode_3_grad_xd tex_opcode_grad_e_params | tex_opcode_3_grad_xd_depth tex_opcode_grad_ef_params | tex_opcode_3_grad_cube tex_opcode_grad_f_params
+
+
+tex_opcode_3 ::= tex_opcode_3_base | tex_opcode_3_level | tex_opcode_3_grad
+
+tex_opcode_4_base_xd ::= 'tex' '.base' tex_geom_xd '.v2' f16x2 tex_ctype
+tex_opcode_4_base_xd_depth ::= 'tex' '.base' (tex_geom_xd - '.3d') '.v2' f16x2 f32
+tex_opcode_4_base_cube ::= 'tex' '.base' tex_geom_cube '.v2' f16x2 f32
+tex_opcode_4_base_sampler ::= 'tex' '.base' tex_geom_sampler '.v2' f16x2 s32
+
+tex_opcode_4_base ::= tex_opcode_4_base_xd | tex_opcode_4_base_xd_depth | tex_opcode_4_base_cube | tex_opcode_4_base_sampler
+tex_opcode_4_base_testcase ::= tex_opcode_4_base_xd tex_opcode_e_params | tex_opcode_4_base_xd_depth tex_opcode_ef_params | tex_opcode_4_base_cube tex_opcode_f_params | tex_opcode_4_base_sampler tex_opcode_e_params
+
+tex_opcode_4_level_xd ::= 'tex' '.level' tex_geom_xd '.v2' f16x2 tex_ctype
+tex_opcode_4_level_xd_depth ::= 'tex' '.level' (tex_geom_xd - '.3d') '.v2' f16x2 f32
+tex_opcode_4_level_cube ::= 'tex' '.level' tex_geom_cube '.v2' f16x2 f32
+/* sampler not supported for level */
+tex_opcode_4_level ::= tex_opcode_4_level_xd | tex_opcode_4_level_xd_depth | tex_opcode_4_level_cube
+
+tex_opcode_4_level_testcase ::= tex_opcode_4_level_xd tex_opcode_level_e_params | tex_opcode_4_level_xd_depth tex_opcode_level_ef_params | tex_opcode_4_level_cube tex_opcode_level_f_params
+
+
+tex_opcode_4_grad_xd ::= 'tex' '.grad' tex_geom_xd '.v2' f16x2 tex_ctype
+tex_opcode_4_grad_xd_depth ::= 'tex' '.grad' (tex_geom_xd - '.3d') '.v2' f16x2 f32
+tex_opcode_4_grad_cube ::= 'tex' '.grad' tex_geom_cube '.v2' f16x2 f32
+/* sampler not supported for grad */
+tex_opcode_4_grad ::= tex_opcode_4_grad_xd | tex_opcode_4_grad_xd_depth | tex_opcode_4_grad_cube
+
+tex_opcode_4_grad_testcase ::= tex_opcode_4_grad_xd tex_opcode_grad_e_params | tex_opcode_4_grad_xd_depth tex_opcode_grad_ef_params | tex_opcode_4_grad_cube tex_opcode_grad_f_params
+
+tex_opcode_4 ::= tex_opcode_4_base | tex_opcode_4_level | tex_opcode_4_grad
+
+tex_opcode ::= tex_opcode_1 | tex_opcode_2 | tex_opcode_3 | tex_opcode_4
+
+
+tld4_comp ::= '.r' | '.g' | '.b' | '.a'
+tld4_geom ::= '.2d' | '.a2d' | '.cube' | '.acube'
+tld4_geom_xd ::= '.2d' | '.a2d'
+tld4_geom_cube ::= '.cube' | '.acube'
+tld4_dtype ::= u32 | s32 | f32
+
+/* difference in args */
+tld4_opcode_1 ::= 'tld4' tld4_comp '.2d' '.v4' tld4_dtype f32
+tld4_opcode_2_xd ::= 'tld4' tld4_comp tld4_geom_xd '.v4' tld4_dtype f32
+tld4_opcode_2_cube ::= 'tld4' tld4_comp tld4_geom_cube '.v4' tld4_dtype f32
+
+tld4_opcode_1_params ::= 'out_d_type0_vector' ',' '[' 'in_a_texref' ',' 'in_c_f32_vector_coord' ']' tex_e_vector_param tex_f_param?
+
+/* cube does not support e */
+tld4_opcode_2_cube_params ::= 'out_d_type0_vector' ',' '[' 'in_a_texref' ',' 'in_c_f32_vector_coord' ']' tex_f_param?
+
+tld4_opcode_1_testcase ::= tld4_opcode_1 tld4_opcode_1_params
+tld4_opcode_2_testcase ::= tld4_opcode_2_xd tld4_opcode_1_params | tld4_opcode_2_cube tld4_opcode_2_cube_params
+
+tld4_opcode ::= tld4_opcode_1 | tld4_opcode_2_xd | tld4_opcode_2_cube
+
+txq_tquery ::= '.width' | '.height' | '.depth' | '.channel_data_type' | '.channel_order' | '.normalized_coords' | '.array_size' | '.num_mipmap_levels' | '.num_samples'
+txq_tlquery ::= '.width' | '.height' | '.depth'
+txq_squery ::= '.force_unnormalized_coords' | '.filter_mode' | '.addr_mode_0' | '.addr_mode_1' | '.addr_mode_2'
+
+txq_opcode_1 ::= 'txq' txq_tquery b32
+txq_opcode_2 ::= 'txq' '.level' txq_tlquery b32
+txq_opcode_3 ::= 'txq' txq_squery b32
+
+txq_13_params ::= 'out_d_b32' ',' '[' 'in_a_texref' ']'
+txq_2_params ::= txq_13_params ',' 'in_lod_b32'
+
+txq_13_testcase ::= txq_opcode_1 txq_13_params | txq_opcode_3 txq_13_params
+txq_2_testcase ::= txq_opcode_2 txq_2_params
+
+txq_opcode ::= txq_opcode_1 | txq_opcode_2 | txq_opcode_3
+
+istypep_type ::= '.texref' | '.sampleref' | '.surfref'
+istypep_opcode ::= 'istypep' istypep_type
+
+/* surface instructions */
+
+suld_geom ::= '.1d' | '.2d' | '.3d' | '.a1d' | '.a2d'
+suld_cache_op ::= '.ca' | '.cg' | '.cs' | '.cv'
+suld_vec ::= ('.v2' | '.v4')?
+suld_dtype ::= '.b8' | '.b16' | '.b32' | '.b64'
+suld_clamp ::= '.trap' | '.clamp' | '.zero'
+
+suld_opcode ::= 'suld' '.b' suld_geom (suld_cache_op)? suld_vec suld_dtype suld_clamp
+/* 128-bit size limit */
+@(CONSTRAINT suld_opcode (imp (eq suld_vec '.v4') (not (eq suld_dtype '.b64'))))
+
+suld_1_params ::= 'out_d_type0_vector' ',' '[' 'in_a_surfref' ',' 'in_b_s32_vector_coord' ']'
+suld_1_testcase ::= suld_opcode suld_1_params
+
+sust_cache_op  ::= '.wb' | '.cg' | '.cs' | '.wt'
+sust_ctype ::= suld_dtype
+
+sust_opcode_1 ::= 'sust' '.b' suld_geom (sust_cache_op)? suld_vec sust_ctype suld_clamp
+@(CONSTRAINT sust_opcode_1 (imp (eq suld_vec '.v4') (not (eq sust_ctype '.b64'))))
+
+sust_1_params ::= '[' 'in_a_surfref' ',' 'in_b_s32_vector_coord' ']' ',' 'in_c_type0_vector'
+sust_1_testcase ::= sust_opcode_1 sust_1_params
+
+sust_opcode_2 ::= 'sust' '.p' (suld_geom - ('.a1d' | '.a2d')) suld_vec b32 suld_clamp
+sust_2_params ::= sust_1_params
+sust_2_testcase ::= sust_opcode_2 sust_2_params
+sust_opcode ::= sust_opcode_1 | sust_opcode_2
+
+sured_op_int ::= '.add' | '.min' | '.max'
+sured_op_bit ::= '.and' | '.or'
+sured_op ::= sured_op_int | sured_op_bit
+sured_geom ::= suld_geom - ('.a1d' | '.a2d')
+sured_ctype_b ::= u32 | u64 | s32 | b32
+sured_ctype_p ::= b32
+
+sured_opcode_1 ::= 'sured' '.b' sured_op sured_geom sured_ctype_b suld_clamp
+sured_opcode_2 ::= 'sured' '.p' sured_op sured_geom sured_ctype_p suld_clamp
+
+@(CONSTRAINT sured_opcode_1 (imp (or (eq sured_op '.and') (eq sured_op '.or')) (eq sured_ctype_b '.b32')))
+@(CONSTRAINT sured_opcode_1 (imp (eq sured_op '.add') (not (eq sured_ctype_b '.b32'))))
+@(CONSTRAINT sured_opcode_1 (imp (or (eq sured_op '.min') (eq sured_op '.max')) (or (eq sured_ctype_b '.s32') (eq sured_ctype_b '.u32'))))
+
+sured_params ::= '[' 'in_a_surfref' ',' 'in_b_s32_vector_coord' ']' ',' 'in_c_type0'
+sured_testcase ::= sured_opcode_1 sured_params | sured_opcode_2 sured_params
+
+sured_opcode ::= sured_opcode_1 | sured_opcode_2
+
+suq_query ::= '.width' | '.height' | '.depth' | '.channel_data_type' | '.channel_order' | '.array_size' | '.memory_layout'
+
+suq_opcode ::= 'suq' suq_query b32
+suq_params ::= 'out_d_type0' ',' '[' 'in_a_surfref' ']'
+suq_testcase ::= suq_opcode suq_params
+
+
+/* CONTROL FLOW INSTRUCTIONS */
+
+/* TODO: instruction list */
+
+/* Nearly all control instructions use custom testcases, using _testcase here only to specify inputs and outputs. See custom_tests.yaml. */
+
+predicate_prefix ::= '@' '!'?
+predicate_params ::= 'in_p_pred' 'out_d_u32'
+
+/* this opcode does not work well with catstats which can't find it */
+predicate_opcode ::= predicate_prefix
+predicate_testcase ::= predicate_prefix predicate_params
+
+branch_opcode_1 ::= 'bra'
+branch_opcode_2 ::= 'bra' '.uni'
+branch_1_params ::= 'out_d_u32_perthread' 'in_c_u32_perthread'
+branch_2_params ::= 'out_d_u32_perthread' 'in_c_u32'
+
+branch_testcase ::= branch_opcode_1 branch_1_params | branch_opcode_2 branch_2_params
+
+branch_opcode ::= branch_opcode_1 | branch_opcode_2
+
+brx_idx_opcode_1 ::= 'brx' '.idx'
+brx_idx_opcode_2 ::= brx_idx_opcode_1 '.uni'
+
+brx_idx_opcode ::= brx_idx_opcode_1 | brx_idx_opcode_2
+
+brx_params_1 ::= 'out_d_u32_perthread' 'in_index_u32_perthread'
+brx_params_2 ::= 'out_d_u32_perthread' 'in_index_u32'
+
+brx_testcase ::= brx_idx_opcode_1 brx_params_1 | brx_idx_opcode_2 brx_params_2
+
+/* TODO: call test case */
+call_opcode ::= 'call' ('.uni')?
+
+/* TODO: compiles down to EXIT */
+ret_opcode ::= 'ret' ('.uni')?
+ret_testcase ::= ret_opcode no_params
+
+exit_opcode ::= 'exit'
+exit_testcase ::= exit_opcode no_params
+
+/* parallel and sync */
+
+/* actually 0..15 */
+barrier_values ::= '0'
+
+/* TODO: test cases for barrier */
+barrier_op ::= '.and' | '.or'
+barrier_aligned ::= '.aligned'
+barrier_opcode_red_popc ::= 'barrier' '.red' '.popc' barrier_aligned? u32
+barrier_opcode_red_op ::= 'barrier' '.red' barrier_op barrier_aligned? pred
+
+barrier_opcode ::= 'barrier' ('.sync' | '.arrive') barrier_aligned?
+			   | barrier_opcode_red_popc | barrier_opcode_red_op
+
+bar_sync_opcode ::= 'bar' '.sync'
+bar_sync_params ::= 'in_barrier_u32_immediate' ( ',' 'in_b_u32_blocksz' )?
+bar_sync_testcase ::= bar_sync_opcode bar_sync_params
+
+bar_arrive_opcode ::= 'bar' '.arrive'
+bar_arrive_params ::= 'in_barrier_u32_immediate' ',' 'in_b_u32_threadcount'
+bar_arrive_testcase ::= bar_arrive_opcode bar_arrive_params
+
+bar_red_popc_opcode ::= 'bar' '.red' '.popc' u32
+bar_red_common_params ::= bar_sync_params ',' '!'? 'in_c_pred_perthread'
+bar_red_popc_params ::= 'out_d_u32_perthread' ',' bar_red_common_params
+
+barrier_opcode_red_popc_testcase ::= barrier_opcode_red_popc bar_red_popc_params
+bar_red_popc_testcase ::= bar_red_popc_opcode bar_red_popc_params
+
+bar_red_op_pred_opcode ::=  'bar' '.red' barrier_op '.pred'
+bar_red_op_pred_params ::= 'out_p_pred_perthread' ',' bar_red_common_params
+
+barrier_red_op_testcase ::= barrier_opcode_red_op bar_red_op_pred_params
+bar_red_op_pred_testcase ::= bar_red_op_pred_opcode bar_red_op_pred_params
+
+bar_warp_opcode ::= 'bar' '.warp' '.sync'
+/* is membermask an immediate? */
+bar_warp_params ::= 'in_membermask_b32_warpmask'
+
+fence_scope ::= ld_scope
+membar_level ::= '.cta' | '.gl' | '.sys' /* gl instead of gpu */
+
+fence_opcode ::= 'fence' ('.sc' | '.acq_rel')? fence_scope
+
+fence_testcase ::= fence_opcode no_params
+
+membar_opcode ::= 'membar' membar_level
+membar_testcase ::= membar_opcode no_params
+
+/* TODO: check if and/or/xor/cas/exch work on integers */
+atom_space ::= '.global' | '.shared'
+atom_sem ::= '.relaxed' | '.acquire' | '.release' | '.acq_rel'
+atom_scope ::= st_scope
+atom_op_binary ::= '.and' | '.or' | '.xor' | '.exch'
+atom_op_cas ::= '.cas'
+atom_op_integer ::= '.add' | '.min' | '.max'
+atom_op_uint ::= '.inc' | '.dec'
+
+atom_type_binary ::= b32 | b64
+/* inc on shared u64 is not supported? */
+atom_type_integer ::= u32 | u64 | s32 | s64
+atom_type_float ::= f32 | f64
+atom_type ::= atom_type_binary | atom_type_integer | atom_type_float
+
+atom_noncas_params ::= ('_' | 'out_d_type0_perthread_ignore') ',' '[' 'in_a_type0_addr_mod' ']' ',' 'in_b_type0_perthread'
+
+atom_prefix ::= 'atom' (atom_sem)? (atom_scope)? (atom_space)?
+
+/* b32 | b64 not supported for atom_op_integer */
+atom_noncas_int_opcode ::=  atom_prefix atom_op_integer atom_type_integer
+@(CONSTRAINT atom_noncas_int_opcode (imp (eq atom_op_integer '.add') (not (eq atom_type_integer '.s64'))))
+
+atom_noncas_half_opcode ::= atom_prefix '.add' '.noftz' half_float
+
+atom_noncas_3264_opcode ::=  atom_prefix (atom_op_binary atom_type_binary | '.add' atom_type_float | atom_op_uint u32)
+
+atom_noncas_3264_testcase ::= (atom_noncas_3264_opcode | atom_noncas_int_opcode ) atom_noncas_params
+atom_noncas_half_testcase ::= atom_noncas_half_opcode atom_noncas_params
+
+/* NOTE: documentation error for cas? */
+atom_cas_opcode ::= atom_prefix '.cas' ( atom_type_binary | b16 )
+
+atom_cas_params ::= atom_noncas_params ',' 'in_c_type0_perthread'
+atom_cas_testcase ::= atom_cas_opcode atom_cas_params
+
+
+red_space ::= atom_space
+red_sem ::= atom_sem - ('.acquire' | '.acq_rel')
+red_scope ::= st_scope
+red_op_binary ::= '.and' | '.or' | '.xor'
+red_op_integer ::= '.add' | '.min' | '.max'
+red_op_uint ::= '.inc' | '.dec'
+
+red_prefix ::= 'red' (red_sem)? (red_scope)? (red_space)?
+
+red_type_binary ::= b32 | b64
+red_type_integer ::= u32 | u64 | s32 | s64
+red_type_float ::= f32 | f64
+red_type ::= red_type_binary | red_type_integer | red_type_float
+
+red_opcode_binary ::= red_prefix red_op_binary red_type_binary
+red_opcode_integer ::= red_prefix red_op_integer red_type_integer
+@(CONSTRAINT red_opcode_integer (not (and (eq red_op_integer '.add') (eq red_type_integer '.s64'))))
+red_opcode_float ::= red_prefix '.add' red_type_float
+red_opcode_half ::= red_prefix '.add' '.noftz' half_float
+
+red_opcode ::= red_opcode_binary | red_opcode_integer | red_opcode_float | red_opcode_half
+
+red_params ::= '[' 'in_a_type0_addr_mod' ']' ',' 'in_b_type0_perthread'
+red_testcase ::= red_opcode red_params
+
+vote_mode ::= '.all' | '.any' | '.uni'
+
+vote_opcode_pred ::= 'vote' '.sync' vote_mode pred
+vote_opcode_ballot ::= 'vote' '.sync' '.ballot' b32
+
+vote_pred_params ::= 'out_d_pred_perthread' ',' '!'? 'in_a_pred_perthread' ',' 'in_membermask_b32'
+vote_ballot_params ::= 'out_d_b32_perthread' ',' '!'? 'in_a_pred_perthread' ',' 'in_membermask_b32'
+/* vote without .sync is deprecated */
+vote_opcode ::=  vote_opcode_pred | vote_opcode_ballot
+vote_testcase ::= vote_opcode_pred vote_pred_params | vote_opcode_ballot vote_ballot_params
+
+match_opcode_1 ::= 'match' '.any' '.sync' (b32 | b64)
+match_opcode_2 ::= 'match' '.all' '.sync' (b32 | b64)
+
+match_opcode ::= match_opcode_1 | match_opcode_2
+
+/* TODO: membermask */
+match_1_params ::= 'out_d_b32_perthread' ',' 'in_a_type0_perthread' ',' 'in_membermask_b32'
+match_2_params ::= 'out_d_b32_perthread' ('|' 'out_p_pred_perthread' )? ',' 'in_a_type0_perthread' ',' 'in_membermask_b32'
+
+match_testcase ::= match_opcode_1 match_1_params | match_opcode_2 match_2_params
+
+/* TODO: input ignore params for activemask to set threads that exit ... */
+
+activemask_opcode ::= 'activemask' b32
+activemask_params ::= 'out_d_type0'
+activemask_testcase ::= activemask_opcode activemask_params
+
+/* WMMA */
+
+matrix_layout ::= '.row' | '.col'
+
+wmma_ss ::= '.global' | '.shared'
+
+wmma_load_shape_1 ::= '.m16n16k16' | '.m8n32k16' | '.m32n8k16'
+wmma_load_prefix_1 ::= 'wmma' '.load' ('.a' | '.b' ) '.sync' '.aligned' matrix_layout wmma_load_shape_1 (wmma_ss)?
+wmma_load_type_11 ::= s8 | u8 | f16
+wmma_load_opcode_1 ::= wmma_load_prefix_1 wmma_load_type_11
+
+/* TODO: Stride and perthread for p (translation is buggy)*/
+wmma_load_1_params ::= 'out_x_b32_vector_matrix' ',' '[' 'in_p_type0_addr' ']'
+
+wmma_load_1_testcase ::= wmma_load_opcode_1 wmma_load_1_params
+
+
+wmma_load_type_2 ::= s32 | f16 | f32
+wmma_load_opcode_2 ::= 'wmma' '.load' '.c' '.sync' '.aligned' matrix_layout wmma_load_shape_1 (wmma_ss)? wmma_load_type_2
+
+wmma_load_2_params ::= 'out_x_b32_vector_matrix' ',' '[' 'in_p_type0_addr' ']'
+
+wmma_load_2_testcase ::= wmma_load_opcode_2 wmma_load_2_params
+
+
+/* TODO test case */
+wmma_load_shape_3 ::= '.m8n8k32'
+wmma_load_abtype ::= s4 | u4
+wmma_load_ctype ::= s32
+wmma_load_3_suffix ::= wmma_load_shape_3 (wmma_ss)?
+wmma_load_3_a ::= '.a' '.sync' '.aligned' '.row' wmma_load_3_suffix wmma_load_abtype
+wmma_load_3_b ::= '.b' '.sync' '.aligned' '.col' wmma_load_3_suffix wmma_load_abtype
+wmma_load_3_c ::= '.c' '.sync' '.aligned' matrix_layout wmma_load_3_suffix wmma_load_ctype
+wmma_load_opcode_3 ::= 'wmma' '.load' (wmma_load_3_a | wmma_load_3_b | wmma_load_3_c)
+
+/* TODO: s4/u4 C types */
+
+wmma_load_3_params ::= 'out_x_b32_vector_matrix' ',' '[' 'in_p_type0_addr' ']'
+wmma_load_3_testcase ::= wmma_load_opcode_3 wmma_load_3_params
+
+/* TODO test case */
+wmma_load_shape_4 ::= '.m8n8k128'
+wmma_load_abtype_4 ::= b1
+wmma_load_ctype_4 ::= s32
+wmma_load_4_suffix ::= wmma_load_shape_4 (wmma_ss)?
+wmma_load_4_a ::= '.a' '.sync' '.aligned' '.row' wmma_load_4_suffix wmma_load_abtype_4
+wmma_load_4_b ::= '.b' '.sync' '.aligned' '.col' wmma_load_4_suffix wmma_load_abtype_4
+wmma_load_4_c ::= '.c' '.sync' '.aligned' matrix_layout wmma_load_4_suffix wmma_load_ctype_4
+wmma_load_opcode_4 ::= 'wmma' '.load' (wmma_load_4_a | wmma_load_4_b | wmma_load_4_c)
+
+/* TODO: b1 C types */
+
+wmma_load_4_testcase ::= wmma_load_opcode_4 wmma_load_3_params
+
+wmma_load_opcode ::= wmma_load_opcode_1 | wmma_load_opcode_2 | wmma_load_opcode_3 | wmma_load_opcode_4
+
+
+wmma_layout ::= matrix_layout
+wmma_store_prefix ::= 'wmma' '.store' '.d' '.sync' '.aligned' matrix_layout
+wmma_store_1 ::= wmma_store_prefix ('.m16n16k16' | '.m8n32k16' | '.m32n8k16') (wmma_ss)? (f16 | f32 | s32)
+wmma_store_2 ::= wmma_store_prefix ('.m8n8k32' | '.m8n8k128') (wmma_ss)? s32
+
+wmma_store_1_params ::= '[' 'in_p_type0_addr_mod' ']' ',' 'in_r_b32_vector_matrix'
+
+wmma_store_1_testcase ::= wmma_store_1 wmma_store_1_params
+wmma_store_2_testcase ::= wmma_store_2 wmma_store_1_params
+
+wmma_store_opcode ::= wmma_store_1 | wmma_store_2
+
+wmma_shape_1 ::= '.m16n16k16' | '.m8n32k16' | '.m32n8k16'
+wmma_1_type ::= f16 | f32
+wmma_prefix_1 ::= 'wmma' '.mma' '.sync' '.aligned' matrix_layout matrix_layout wmma_shape_1
+wmma_2_atype ::= s8 | u8
+wmma_2_btype ::= s8 | u8
+wmma_opcode_1 ::= wmma_prefix_1 wmma_1_type wmma_1_type
+wmma_opcode_2 ::= wmma_prefix_1 s32 wmma_2_atype wmma_2_btype s32 ('.satfinite')?
+
+wmma_opcode_12 ::= wmma_opcode_1 | wmma_opcode_2
+
+wmma_mma_1_params ::= 'out_d_type0_vector_matrix' ',' 'in_a_f16_vector_matrix' ',' 'in_b_f16_vector_matrix' ',' 'in_c_type1_vector_matrix'
+
+wmma_mma_2_params ::= 'out_d_type0_vector_matrix' ',' 'in_a_type1_vector_matrix' ',' 'in_b_type2_vector_matrix' ',' 'in_c_type3_vector_matrix'
+
+wmma_mma_1_testcase ::= wmma_opcode_1 wmma_mma_1_params
+wmma_mma_2_testcase ::= wmma_opcode_2 wmma_mma_2_params
+
+@(CONSTRAINT wmma_opcode_2 (eq wmma_2_atype wmma_2_btype))
+
+wmma_3_atype ::= s4 | u4
+wmma_3_btype ::= s4 | u4
+wmma_opcode_3 ::= 'wmma' '.mma' '.sync' '.aligned' '.row' '.col' '.m8n8k32' s32 wmma_3_atype wmma_3_btype s32 ('.satfinite')?
+
+wmma_mma_3_testcase ::= wmma_opcode_3 wmma_mma_2_params
+
+@(CONSTRAINT wmma_opcode_3 (eq wmma_3_atype wmma_3_btype))
+
+wmma_4_type ::= b1
+wmma_opcode_4 ::= 'wmma' '.mma' '.xor' '.popc' '.sync' '.aligned' '.row' '.col' '.m8n8k128' s32 wmma_4_type wmma_4_type s32
+
+wmma_mma_4_testcase ::= wmma_opcode_4 wmma_mma_2_params
+
+wmma_opcode ::= wmma_opcode_12 | wmma_opcode_3 | wmma_opcode_4
+
+/* MMA */
+mma_1_type ::= f16 | f32
+mma_1_layout ::= '.row' | '.col'
+mma_prefix ::= 'mma' '.sync' '.aligned'
+mma_d_type ::= mma_1_type
+mma_c_type ::= mma_1_type
+mma_opcode_1 ::= mma_prefix '.m8n8k4' mma_1_layout mma_1_layout mma_d_type f16 f16 mma_c_type
+mma_opcode_2 ::= mma_prefix '.m16n8k8' '.row' '.col' mma_d_type f16 f16 mma_c_type
+
+@(CONSTRAINT (mma_opcode_1 mma_opcode_2) (eq mma_d_type mma_c_type))
+
+mma_1_params ::= 'out_d_type0_vector_matrix' ',' 'in_a_type1_vector_matrix' ',' 'in_b_type2_vector_matrix' ',' 'in_c_type3_vector_matrix'
+
+mma_1_testcase ::= mma_opcode_1 mma_1_params
+mma_2_testcase ::= mma_opcode_2 mma_1_params
+
+mma_int_1_type ::= u8 | s8
+mma_int_1a_type ::= mma_int_1_type
+mma_int_1b_type ::= mma_int_1_type
+mma_opcode_3 ::= mma_prefix '.m8n8k16' '.row' '.col' ('.satfinite')? s32 mma_int_1a_type mma_int_1b_type s32
+
+mma_int_2_type ::= u4 | s4
+mma_int_2a_type ::= mma_int_2_type
+mma_int_2b_type ::= mma_int_2_type
+mma_opcode_4 ::= mma_prefix '.m8n8k32' '.row' '.col' ('.satfinite')? s32 mma_int_2a_type mma_int_2b_type s32
+
+/* note: no constraints on .m8n8k32 */
+
+mma_3_testcase ::= mma_opcode_3 mma_1_params
+mma_4_testcase ::= mma_opcode_4 mma_1_params
+
+mma_opcode ::= mma_opcode_1 | mma_opcode_2 | mma_opcode_3 | mma_opcode_4
+
+ldmatrix_opcode ::= 'ldmatrix' '.sync' '.aligned' '.m8n8' ('.x1' | '.x2' | '.x4') ('.trans')? ('.shared')? b16
+
+ldmatrix_params ::= 'out_r_b32_vector_matrix' ',' '[' 'in_p_type0_addr' ']'
+
+ldmatrix_testcase ::= ldmatrix_opcode ldmatrix_params
+
+
+/* scalar video */
+
+vop_type ::= u32 | s32
+vop_sel ::= '.b0' | '.b1' | '.b2' | '.b3' | '.h0' | '.h1'
+vop_op2 ::= '.add' | '.min' | '.max'
+vop_op ::= 'vadd' | 'vsub' | 'vabsdiff' | 'vmin' | 'vmax'
+
+vop_arg_type_spec ::= vop_type vop_type
+
+vop_opcode_1 ::= vop_op vop_type vop_arg_type_spec (sat)?
+vop_opcode_2 ::= vop_op vop_type vop_arg_type_spec (sat)? vop_op2
+
+vop_opcode ::= vop_opcode_1 | vop_opcode_2
+
+vop_params_1 ::= 'out_d_type0' ',' 'in_a_type1' vop_sel? ',' 'in_b_type2'
+vop_params_2 ::= 'out_d_type0' ',' 'in_a_type1' ',' 'in_b_type2' ',' 'in_c_type0'
+
+vop_opcode_1_testcase ::= vop_opcode_1 vop_params_1
+vop_opcode_2_testcase ::= vop_opcode_2 vop_params_2
+
+vshift_op ::= 'vshl' | 'vshr'
+vshift_mode ::= '.clamp' | '.wrap'
+vshift_arg_type_spec ::= vop_type vop_type u32
+
+vshift_opcode_1 ::= vshift_op vshift_arg_type_spec (sat)? vshift_mode
+vshift_opcode_2 ::= vshift_opcode_1 vop_op2
+
+vshift_1_params ::= 'out_d_type0' ',' 'in_a_type1' vop_sel? ',' 'in_b_u32' vop_sel?
+vshift_2_params ::= vshift_1_params ',' 'in_c_type0'
+vshift_3_params ::= 'out_d_type0'  vop_sel ',' 'in_a_type1' vop_sel? ',' 'in_b_u32' vop_sel? ',' 'in_c_type0'
+
+vshift_1_testcase ::= vshift_opcode_1 vshift_1_params
+vshift_2_testcase ::= vshift_opcode_2 vshift_2_params
+vshift_3_testcase ::= vshift_opcode_1 vshift_3_params
+
+vshift_opcode ::= vshift_opcode_1 | vshift_opcode_2
+
+vmad_scale ::= '.shr7' | '.shr15'
+
+vmad_opcode_nonpo ::= 'vmad' vop_type vop_type vop_type (sat)? (vmad_scale)?
+
+vmad_opcode_po ::= 'vmad' vop_type vop_type vop_type '.po' (sat)? (vmad_scale)?
+
+vmad_opcode ::= vmad_opcode_po | vmad_opcode_nonpo
+
+vmad_aneg ::= '-'?
+vmad_bneg ::= vmad_aneg
+vmad_cneg ::= vmad_aneg
+vmad_nonpo_params ::= 'out_d_type0' ',' vmad_aneg 'in_a_type1' vop_sel? ',' vmad_bneg 'in_b_type2' vop_sel? ',' vmad_cneg 'in_c_type1_abequal'
+
+/* Fun, not: "PTX allows negation of either (a*b) or c." */
+@(CONSTRAINT vmad_nonpo_params (imp (xor (eq vmad_aneg '-') (eq vmad_bneg '-')) (not (eq vmad_cneg '-'))))
+
+
+vmad_nonpo_params_2 ::= 'out_d_type0' ',' '-'? 'in_a_type1' vop_sel? ',' '' 'in_b_type2' vop_sel? ',' '-'? 'in_c_type1_abequal'
+
+vmad_po_params ::= 'out_d_type0' ',' 'in_a_type1' vop_sel? ',' 'in_b_type2' vop_sel? ',' 'in_c_type1_abequal'
+
+vmad_1_testcase ::= vmad_opcode_po vmad_po_params
+vmad_2_testcase ::= vmad_opcode_nonpo vmad_nonpo_params
+
+vset_type ::= u32 | s32
+vset_cmp ::= set_cmpop
+vset_sel ::= vop_sel
+/*TODO: why was this created? vop_op_mod ::= '.vadd' | '.vsub' | '.vabsdiff' | '.vmin' | '.vmax' */
+
+vset_1 ::= 'vset' vset_type vset_type vset_cmp
+vset_2 ::= vset_1 vop_op2
+
+
+/* TODO: dtype and ctype */
+vset_1_params ::= 'out_d_b32' ',' 'in_a_type0' vset_sel? ',' 'in_b_type1' vset_sel?
+vset_2_params ::= vset_1_params ',' 'in_c_b32'
+vset_3_params ::= 'out_d_b32' vset_sel ',' 'in_a_type0' vset_sel? ',' 'in_b_type1' vset_sel? ',' 'in_c_b32'
+
+vset_1_testcase ::= vset_1 vset_1_params
+vset_2_testcase ::= vset_2 vset_2_params
+
+/* this is dsel */
+vset_3_testcase ::= vset_1 vset_3_params
+
+vset_opcode ::= vset_1 | vset_2
+
+/* simd video */
+
+vop2_type ::= u32 | s32
+vop2_mask ::= '.h0' | '.h1' | '.h10'
+
+/* TODO: adding all vop2_sel results in > 100K test cases*/
+vop2_sel_test ::= ''
+vop2_sel ::= ('.h' [0123] [0123])?
+vop2_ops ::= 'vadd2' | 'vsub2' | 'vavrg2' | 'vabsdiff2' | 'vmin2' | 'vmax2'
+
+vop2_opcode ::= vop2_ops vop2_type vop2_type vop2_type ((sat | '.add'))?
+vop2_params ::= 'out_d_type0' vop2_mask? ',' 'in_a_type1' vop2_sel_test ',' 'in_b_type2' vop2_sel_test ',' 'in_c_b32'
+
+/* TODO: maybe express as constraint for testing */
+vop2_testcase ::= vop2_opcode vop2_params
+
+vset2_type ::= vop2_type
+vset2_cmp ::= vset_cmp
+vset2_mask ::= vop2_mask
+vset2_sel ::= vop2_sel
+vset2_sel_test ::= vop2_sel_test /* 55K tests without this */
+
+vset2_opcode ::= 'vset2' vset2_type vset2_type vset2_cmp ('.add')?
+vset2_params ::= 'out_d_u32' vset2_mask? ',' 'in_a_type0' vset2_sel_test ',' 'in_b_type1' vset2_sel_test ',' 'in_c_b32'
+vset2_testcase ::= vset2_opcode vset2_params
+
+vop4_type ::= u32 | s32
+vop4_mask ::= '.b0' | '.b1' | '.b10' | '.b2' | '.b20' | '.b21' | '.b210' | '.b3' | '.b30' | '.b31' | '.b310' | '.b32' | '.b320' | '.b321' | '.b3210'
+vop4_sel ::= '.b' [0-7] [0-7] [0-7] [0-7]
+vop4_sel_test ::= ''
+vop4_ops ::= 'vadd4' | 'vsub4' | 'vavrg4' | 'vabsdiff4' | 'vmin4' | 'vmax4'
+
+vop4_opcode ::= vop4_ops vop4_type vop4_type vop4_type ((sat | '.add'))?
+vop4_params ::= 'out_d_type0' vop4_mask? ',' 'in_a_type1' vop4_sel_test ',' 'in_b_type2' vop4_sel_test ',' 'in_c_b32'
+vop4_testcase ::= vop4_opcode vop4_params
+
+vset4_type ::= vop4_type
+vset4_cmp ::= vset_cmp
+vset4_mask ::= vop4_mask
+vset4_sel ::= vop4_sel
+vset4_sel_test ::= ''
+vset4_opcode ::= 'vset4' vset4_type vset4_type vset4_cmp ('.add')?
+vset4_params ::= 'out_d_u32' vset4_mask? ',' 'in_a_type0' vset4_sel_test ',' 'in_b_type1' vset4_sel_test ',' 'in_c_b32'
+vset4_testcase ::= vset4_opcode vset4_params
+
+/* misc */
+
+brkpt_opcode ::= 'brkpt'
+brkpt_testcase ::= brkpt_opcode no_params
+
+/* sm_70 */
+/* TODO: restrict values of t, maybe perthread? */
+nanosleep_opcode ::= 'nanosleep' u32
+nanosleep_params ::= 'in_t_b32'
+nanosleep_testcase ::= nanosleep_opcode nanosleep_params
+
+aevent_values ::= '0'
+amask_values ::= '0xfe'
+
+pmevent_opcode_1 ::= 'pmevent'
+pmevent_1_params ::= 'in_aevent_u32_immediate'
+
+pmevent_opcode_2 ::= 'pmevent' '.mask'
+pmevent_2_params ::= 'in_amask_u32_immediate'
+
+pmevent_opcode ::= pmevent_opcode_1 | pmevent_opcode_2
+
+pmevent_testcase ::= pmevent_opcode_1 pmevent_1_params | pmevent_opcode_2 pmevent_2_params
+
+
+trap_opcode ::= 'trap'
+trap_testcase ::= trap_opcode no_params
+
+spl_regs_v4_u32 ::= '%tid' | '%ntid' | '%ctaid' | '%nctaid'
+spl_regs_u32_pt ::= '%laneid' | '%warpid' | '%lanemask_eq' | '%lanemask_le' | '%lanemask_lt' | '%lanemask_gt'
+spl_regs_u32 ::= '%nwarpid' | '%smid' | '%nsmid' | '%clock' | '%clock_hi' | '%pm0' | '%pm7' | '%envreg0' | '%globaltimer_lo' | '%globaltimer_hi' | '%total_smem_size' | '%dynamic_smem_size'
+spl_regs_u64 ::= '%gridid' | '%clock64' | '%pm0_64' | '%globaltimer'
+
+spl_regs_v4_u32_params ::= '{' 'out_x_u32' ',' 'out_y_u32' ',' 'out_z_u32' ',' 'out_w_u32' '}' ',' spl_regs_v4_u32
+
+spl_regs_u32_pt_params ::= 'out_d_u32_perthread' ',' spl_regs_u32_pt
+spl_regs_u32_params ::= 'out_d_u32' ',' spl_regs_u32
+spl_regs_u64_params ::= 'out_d_u64' ',' spl_regs_u64
+
+spl_regs_v4_u32_testcase ::= ('splreg' 'mov.v4.u32') spl_regs_v4_u32_params
+spl_regs_u32_pt_testcase ::= ('splreg' 'mov.u32') spl_regs_u32_pt_params
+spl_regs_u32_testcase ::= ('splreg' 'mov.u32') spl_regs_u32_params
+spl_regs_u64_testcase ::= ('splreg' 'mov.u64') spl_regs_u64_params
+
+/* TODO: opcodes? */
+
+/* NOT PTX OPCODES. THESE ARE DEPENDENT ON ARCHITECTURE */
+sass_xmad_psl_testcase ::= ('xmad' '.psl') ('out_d_u32' 'in_a_u32')
+sass_fcmp_testcase ::= ('fcmp') ('out_d_f32' 'in_a_f32')
+sass_fcmp_neu_testcase ::= ('fcmp' '.neu') ('out_d_f32' 'in_a_f32')
+sass_fcmp_geu_testcase ::= ('fcmp' '.geu') ('out_d_f32' 'in_a_f32')
+sass_fcmp_lt_testcase ::= ('fcmp' '.lt') ('out_d_f32' 'in_a_f32')
+sass_fcmp_eq_testcase ::= ('fcmp' '.eq') ('out_d_f32' 'in_a_f32')
+
+/* TODO: this doesn't work */
+sass_fcmp_leu_testcase ::= ('fcmp' '.leu') ('out_d_f32' 'in_a_f32' 'in_b_f32')
+
+sass_fmul32i_testcase ::= ('fmul32i') ('out_d_f32' 'in_a_f32')
+sass_fadd32i_testcase ::= ('fadd32i' '.ftz'?) ('out_d_f32' 'in_a_f32')
+sass_fmuld2_testcase ::= ('fmul' '.d2') ('out_d_f32' 'in_a_f32')
+sass_pbk_testcase ::= ('pbk') ('out_d_u32_perthread' 'in_a_u32_perthread')

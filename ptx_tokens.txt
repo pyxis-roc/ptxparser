@@ -1,5 +1,5 @@
 ID /([a-zA-Z][a-zA-Z0-9_$]*)|([_$%][A-Za-z0-9_$]+)/
-SPACE [#x20#x9#xd#xa]
+SPACE [#x20#x9#xd]
 HEX_LITERAL /0[xX][A-Fa-f0-9]+U?/
 OCT_LITERAL /0[0-7]+U?/
 BIN_LITERAL /0[bB][01]+U?/
@@ -480,3 +480,4 @@ TOKEN_CC_0 [0-9a-f]
 TOKEN_CC_1 [1-9a-f]
 TOKEN_CC_2 [0123]
 TOKEN_CC_3 [0-7]
+TOKEN_CC_4 [#x20#x9#xd#xa]
