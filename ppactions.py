@@ -132,6 +132,9 @@ class a_block_stmt(ChooseMixin, a_block_stmt):
 class a_unsigned(ChooseMixin, a_unsigned):
     pass
 
+class a_signed(ChooseMixin, a_signed):
+    pass
+
 class a_signed_unsigned(ChooseMixin, a_signed_unsigned):
     pass
 
@@ -148,6 +151,12 @@ class a_ld_type(ChooseMixin, a_ld_type):
     pass
 
 class a_st_type(ChooseMixin, a_st_type):
+    pass
+
+class a_cc_type(ChooseMixin, a_cc_type):
+    pass
+
+class a_half_float(ChooseMixin, a_half_float):
     pass
 
 class a_opcodes(ChooseMixin, a_opcodes):
@@ -178,6 +187,55 @@ class a_address_size_dir(a_address_size_dir):
 class a_target_dir(a_target_dir):
     def abstract(self):
         return Target(targets=self.args[1], address_size=self.args[2])
+
+class a_addr_operand(a_addr_operand):
+    def abstract(self):
+        # TODO: handle immediate 32-bit addresses
+        return AddressOpr(value=self.args[1], offset=self.args[2].args[1] if self.args[2] else None)
+
+class a_linker_identifier(ChooseMixin, a_linker_identifier):
+    pass
+
+class a_param_state_spaces(ChooseMixin, a_param_state_spaces):
+    pass
+
+class a_linker_stmt(a_linker_stmt):
+    def abstract(self):
+        return Linker(directive=self.args[0].args[0], identifier=self.args[1])
+
+class a_param_decl(a_param_decl):
+    def abstract(self):
+        return Param(self.args[0], self.args[1], self.args[2], self.args[3], self.args[4])
+
+class a_varinit_list(a_varinit_list):
+    def abstract(self):
+        if self.args[2] is None:
+            return [VarInit(self.args[0], self.args[1])]
+        else:
+            a2 = utils.make_concat_list(self.args[2], sel=[1])
+            x = [VarInit(self.args[0], self.args[1])]
+            x.extend(a2)
+            return x
+
+class a_array_decl(a_array_decl):
+    def abstract(self):
+        dim = list(utils.make_concat_list(self.args[1], sel=[1]))
+        return ArrayDecl(self.args[0], dim)
+
+class a_var_decl(a_var_decl):
+    def abstract(self):
+        return MultivarDecl(self.args[0], self.args[1], self.args[2], self.args[3], self.args[4])
+
+class a_var_decl_stmt(a_var_decl_stmt):
+    def abstract(self):
+        return self.args[0]
+
+class a_vector_suffixes(ChooseMixin, a_vector_suffixes):
+    pass
+
+class a_vector_extract(a_vector_extract):
+    def abstract(self):
+        return VectorComp(self.args[0], self.args[1])
 
 class a_entry(a_entry):
     def abstract(self):
