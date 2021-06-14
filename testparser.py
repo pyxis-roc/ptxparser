@@ -122,7 +122,6 @@ class PTXAST2Code(pa.NodeVisitor):
             #else:
             #    sa.append(_mks(a))
 
-        print(sa)
         out.append(", ".join(sa))
         self._o(" ".join(out) + ";")
 
@@ -134,7 +133,6 @@ class PTXAST2Code(pa.NodeVisitor):
         self._o("}")
 
     def visit_Entry(self, node):
-        print(f"in {node.name}")
         l = ['.entry']
         l.append(self.visit(node.name))
         p = "(" + ", ".join([self.visit(p) for p in node.params]) + ")"
