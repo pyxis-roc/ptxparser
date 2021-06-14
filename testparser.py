@@ -57,9 +57,6 @@ class PTXAST2Code(pa.NodeVisitor):
     def visit_VectorComp(self, node):
         return f"{self.visit(node.var)}{node.comp}"
 
-    def visit_Label(self, node):
-        return f"{node.name}:"
-
     def visit_VectorOpr(self, node):
         elts = [self.visit(x) for x in node.elts]
         return f"{{{', '.join(elts)}}}"
@@ -70,28 +67,6 @@ class PTXAST2Code(pa.NodeVisitor):
             var = var + f" = {self.visit(node.init_)}"
 
         return var
-
-    def visit_Instruction(self, node):
-        out = []
-        if node.predicate: out.append(self.visit(node.predicate))
-        out.append("".join(utils.dfs_token_list_rec(node.opcode)))
-
-        sa = []
-        for a in node.args:
-            if isinstance(a, pa.Node):
-                sa.append(self.visit(a))
-            elif isinstance(a, ptxtokens.BinFloat):
-                # this needs to be handled better by converting
-                # BinFloat to a proper AST node, perhaps a Constexpr
-                # with only it.
-                sa.append(a.value)
-            else:
-                raise NotImplementedError(f"Unknown type of argument {a}")
-            #else:
-            #    sa.append(_mks(a))
-
-        out.append(", ".join(sa))
-        return ' '.join(out)
 
     def visit_MultivarDecl(self, node):
         l = []
@@ -134,10 +109,29 @@ class PTXAST2Code(pa.NodeVisitor):
     def visit_PragmaDir(self, node):
         return f".pragma {', '.join(node.pragma)}"
 
+    def visit_Label(self, node):
+        self._o(f"{node.name}:")
+
     def visit_Statement(self, node):
         out = []
-        if node.label: out.append(self.visit(node.label))
-        out.append(self.visit(node.contents))
+        if node.predicate: out.append(self.visit(node.predicate))
+        out.append("".join(utils.dfs_token_list_rec(node.opcode)))
+
+        sa = []
+        for a in node.args:
+            if isinstance(a, pa.Node):
+                sa.append(self.visit(a))
+            elif isinstance(a, ptxtokens.BinFloat):
+                # this needs to be handled better by converting
+                # BinFloat to a proper AST node, perhaps a Constexpr
+                # with only it.
+                sa.append(a.value)
+            else:
+                raise NotImplementedError(f"Unknown type of argument {a}")
+            #else:
+            #    sa.append(_mks(a))
+
+        out.append(", ".join(sa))
         self._o(" ".join(out) + ";")
 
     def visit_Block(self, node):

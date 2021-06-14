@@ -72,22 +72,24 @@ class a_pragma_list(a_pragma_list):
 
 class a_pragma_dir(a_pragma_dir):
     def abstract(self):
-        return PragmaDir(self.args[1])
+        return Pragma(self.args[1])
+
+class a_label(a_label):
+    def abstract(self):
+        # shift/reduce issue?
+        if isinstance(self.args[0], Iden):
+            return Label(self.args[0].value)
+        else:
+            assert isinstance(self.args[0], str)
+            return Label(self.args[0])
 
 class a_pragma_stmt(a_pragma_stmt):
     def abstract(self):
-        return Statement(None, self.args[0])
-
-class a_insn_args(a_insn_args):
-    def abstract(self):
-        return Instruction(self.args[0], self.args[1], self.args[2])
-
-class a_stmt(ChooseMixin, a_stmt):
-    pass
+        return self.args[0]
 
 class a_statement(a_statement):
     def abstract(self):
-        return Statement(self.args[0], self.args[1])
+        return Statement(self.args[0], self.args[1], self.args[2])
 
 class BinOpMixin:
     def abstract(self):

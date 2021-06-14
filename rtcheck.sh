@@ -24,5 +24,8 @@ if ./testparser.py "$1" -n0 -o "$O1"; then
             echo "$O1" "$O2"
             exit 1;
         fi;
+    else
+        echo "ERROR: Roundtrip parsing failure (stage 1 output problem)"
+        exit 1
     fi;
 fi;

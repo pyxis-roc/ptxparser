@@ -9,6 +9,25 @@ from pathlib import Path
 import nametokens
 import sys
 
+t_error = """
+def t_error(t):
+    print(f"ERROR:{t.lineno}: Unexpected character '{t.value[0]}'.", file=sys.stderr)
+    INPUT = lexer.lexdata
+    sol = INPUT.rfind('\\n', 0, t.lexpos - 1) + 1  # ignore the \\n found
+    eol = INPUT.find('\\n', t.lexpos)
+    if eol == -1: eol = len(INPUT)
+    line = INPUT[sol:eol] # don't include \\n
+
+    print("    " + line, file=sys.stderr)
+
+    if False:
+        arrow = "----^"
+    else:
+        arrow = "\\u25b2"
+
+    print("    " + " "*(t.lexpos-sol-len(arrow)+1)+arrow, file=sys.stderr)
+"""
+
 p_error = """
 def p_error(p):
     if p is None:
@@ -57,6 +76,7 @@ if __name__ == "__main__":
     }
 
     lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')
+    lx.t_error = t_error
 
     for t in nametokens.PTX_65_KEYWORDS:
         tu = "'" + t + "'"

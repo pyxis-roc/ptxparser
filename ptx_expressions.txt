@@ -123,7 +123,7 @@ pragma_list ::= pragma (',' pragma)*
 pragma_dir ::= '.pragma' pragma_list
 pragma_stmt ::= pragma_dir ';'
 
-block_stmt ::= statement | var_decl_stmt | block
+block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt
 block ::= '{' block_stmt* '}'
 
 func_body ::= block?
@@ -140,9 +140,7 @@ linker_stmt ::= linker_dir linker_identifier
 
 /* opcode ::= 'add' '.f32' | 'ld' '.param' '.u64' | 'cvta' '.to' '.global' '.u64' | 'ret' | 'ld' '.v2' '.b8' | 'st' '.global' '.u8' | 'cvt' '.u32' '.u8' */
 
-insn_args ::= predicate? opcodes arg_list
-stmt ::= insn_args | pragma_dir
-statement ::= label? stmt ';'
+statement ::= predicate? opcodes arg_list ';'
 
 toplevel_statements ::= var_decl_stmt | entry | func | linker_stmt | pragma_stmt
 
