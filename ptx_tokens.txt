@@ -6,9 +6,9 @@ BIN_LITERAL /0[bB][01]+U?/
 DBL_LITERAL3 /[0-9]*\.[0-9]+((e|E)(\+|-)?[0-9]+)?/
 DBL_LITERAL2 /[0-9]+\.((e|E)(\+|-)?[0-9]+)?/
 DBL_LITERAL1 /[0-9]+((e|E)(\+|-)?[0-9]+)/
-DEC_LITERAL /(0|[1-9][0-9]*)U?/
 FLTX_LITERAL /0[fF][0-9A-Fa-f]{8}/
 DBLX_LITERAL /0[dD][0-9A-Fa-f]{16}/
+DEC_LITERAL /(0|[1-9][0-9]*)U?/
 TOKEN_STR_0 '__external__'
 TOKEN_RPAREN ')'
 TOKEN_LPAREN '('
@@ -126,6 +126,7 @@ PREFETCHU 'prefetchu'
 TOKEN_STR_379 '.m32n8k16'
 TOKEN_STR_21 '.managed'
 TOKEN_STR_24 '.section'
+PRAGMA '.pragma'
 TOKEN_STR_28 'in_f_f32'
 TOKEN_STR_60 '%nwarpid'
 TOKEN_STR_102 '.relaxed'
@@ -481,3 +482,4 @@ TOKEN_CC_1 [1-9a-f]
 TOKEN_CC_2 [0123]
 TOKEN_CC_3 [0-7]
 TOKEN_CC_4 [#x20#x9#xd#xa]
+TOKEN_STR_12 '"nounroll"'

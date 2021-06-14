@@ -51,6 +51,8 @@ if __name__ == "__main__":
                      "DBL_LITERAL1": "Double",
                      "DBL_LITERAL2": "Double",
                      "DBL_LITERAL3": "Double",
+                     "FLTX_LITERAL": "BinFloat",
+                     "DBLX_LITERAL": "BinDouble",
                      "ID": "Iden"
     }
 

@@ -93,3 +93,24 @@ class Iden(Token):
         return f"Iden({self.value})"
 
     __repr__ = __str__
+
+class BinFloat(Token):
+    def __init__(self, t):
+        self.args = []
+        self.value = t
+
+    def __str__(self):
+        return f"BinFloat({self.value})"
+
+    __repr__ = __str__
+
+class BinDouble(Token):
+    def __init__(self, t):
+        self.args = []
+        self.value = t
+
+    def __str__(self):
+        return f"BinDouble({self.value})"
+
+    __repr__ = __str__
+

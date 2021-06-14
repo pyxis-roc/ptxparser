@@ -3,6 +3,11 @@ from ptxast import *
 from ebnftools.convert.ply import utils
 from ptxtokens import *
 
+class ChooseMixin:
+    """Used to handle rules that are only choices"""
+    def abstract(self):
+        return self.args[0]
+
 class a_ce_int_literal(a_ce_int_literal):
     def abstract(self):
         return IntLiteral(self.args[0].value, self.args[0].unsigned)
@@ -18,6 +23,9 @@ class a_ce_unary_1(a_ce_unary_1):
 
         x = self.args[1]
         for op in reversed(list(utils.make_concat_list(self.args[0]))):
+            if not isinstance(op, str):
+                op = ''.join(utils.dfs_token_list(op))
+
             x = UnOp(op=op, expr=x)
 
         return x
@@ -53,16 +61,45 @@ class a_arg_list(a_arg_list):
             args.extend(utils.make_concat_list(self.args[0].args[1], sel=[1]))
         return args
 
+class a_pragma(ChooseMixin, a_pragma):
+    pass
+
+class a_pragma_list(a_pragma_list):
+    def abstract(self):
+        a = [self.args[0]]
+        a.extend(utils.make_concat_list(self.args[1], sel=[1]))
+        return  a
+
+class a_pragma_dir(a_pragma_dir):
+    def abstract(self):
+        return PragmaDir(self.args[1])
+
+class a_pragma_stmt(a_pragma_stmt):
+    def abstract(self):
+        return Statement(None, self.args[0])
+
+class a_insn_args(a_insn_args):
+    def abstract(self):
+        return Instruction(self.args[0], self.args[1], self.args[2])
+
+class a_stmt(ChooseMixin, a_stmt):
+    pass
+
 class a_statement(a_statement):
     def abstract(self):
-        return Statement(self.args[0], self.args[1], self.args[2], self.args[3])
+        return Statement(self.args[0], self.args[1])
 
 class BinOpMixin:
     def abstract(self):
         if self.args[0] is None:
             return self.args[1]
 
-        return BinOp(self.args[0].args[1], self.args[0].args[0], self.args[1])
+        op = self.args[0].args[1]
+        if not isinstance(op, str):
+            # this is a list of alt operators
+            op = utils.dfs_token_list(op)[0]
+
+        return BinOp(op, self.args[0].args[0], self.args[1])
 
 class a_ce_lor(BinOpMixin,a_ce_lor):
     pass
@@ -121,11 +158,6 @@ class a_param_list(a_param_list):
 class a_param_spec(a_param_spec):
     def abstract(self):
         return self.args[1]
-
-class ChooseMixin:
-    """Used to handle rules that are only choices"""
-    def abstract(self):
-        return self.args[0]
 
 class a_block_stmt(ChooseMixin, a_block_stmt):
     pass

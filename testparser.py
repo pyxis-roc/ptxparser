@@ -3,6 +3,7 @@
 import argparse
 from ptx_lexer_ply import lexer
 from ptx_parser_ply import parser
+import ptxtokens
 import re
 import ptxgenactions as pga
 import ptxast as pa
@@ -70,6 +71,28 @@ class PTXAST2Code(pa.NodeVisitor):
 
         return var
 
+    def visit_Instruction(self, node):
+        out = []
+        if node.predicate: out.append(self.visit(node.predicate))
+        out.append("".join(utils.dfs_token_list_rec(node.opcode)))
+
+        sa = []
+        for a in node.args:
+            if isinstance(a, pa.Node):
+                sa.append(self.visit(a))
+            elif isinstance(a, ptxtokens.BinFloat):
+                # this needs to be handled better by converting
+                # BinFloat to a proper AST node, perhaps a Constexpr
+                # with only it.
+                sa.append(a.value)
+            else:
+                raise NotImplementedError(f"Unknown type of argument {a}")
+            #else:
+            #    sa.append(_mks(a))
+
+        out.append(", ".join(sa))
+        return ' '.join(out)
+
     def visit_MultivarDecl(self, node):
         l = []
         l.append(_mks(node.ss))
@@ -93,7 +116,6 @@ class PTXAST2Code(pa.NodeVisitor):
         out.append(self.visit(node.name))
         return ' '.join(out)
 
-
     def visit_AddressOpr(self, node):
         out = [self.visit(node.value)]
         if node.offset is not None:
@@ -109,20 +131,13 @@ class PTXAST2Code(pa.NodeVisitor):
         dim = "".join([f"[{self.visit(v)}]" for v in node.dim])
         return f"{self.visit(node.name)}{dim}"
 
+    def visit_PragmaDir(self, node):
+        return f".pragma {', '.join(node.pragma)}"
+
     def visit_Statement(self, node):
         out = []
         if node.label: out.append(self.visit(node.label))
-        if node.predicate: out.append(self.visit(node.predicate))
-
-        out.append("".join(utils.dfs_token_list_rec(node.opcode)))
-
-        sa = []
-        for a in node.args:
-            sa.append(self.visit(a))
-            #else:
-            #    sa.append(_mks(a))
-
-        out.append(", ".join(sa))
+        out.append(self.visit(node.contents))
         self._o(" ".join(out) + ";")
 
     def visit_Block(self, node):
