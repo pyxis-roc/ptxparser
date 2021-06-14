@@ -9,6 +9,28 @@ from pathlib import Path
 import nametokens
 import sys
 
+p_error = """
+def p_error(p):
+    if p is None:
+        print("ERROR: Unexpected EOF when parsing", file=sys.stderr)
+    else:
+        print(f"ERROR:{p.lineno}: Unexpected token '{p.value}' ({p.type}).", file=sys.stderr)
+        INPUT = lexer.lexdata
+        sol = INPUT.rfind('\\n', 0, p.lexpos - 1) + 1  # ignore the \\n found
+        eol = INPUT.find('\\n', p.lexpos)
+        if eol == -1: eol = len(INPUT)
+        line = INPUT[sol:eol] # don't include \\n
+
+        print("    " + line, file=sys.stderr)
+
+        if False:
+            arrow = "----^"
+        else:
+            arrow = "\\u25b2"
+
+        print("    " + " "*(p.lexpos-sol-len(arrow)+1)+arrow, file=sys.stderr)
+"""
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Generate a PLY-based parser for the PTX grammar")
     p.add_argument("bnfgrammar")
@@ -59,6 +81,7 @@ if __name__ == "__main__":
 
     ag = cvtply.CTActionGen(abstract=True)
     prs = cvtply.ParserGen(treg, gr, 'start', actiongen=ag, handlermod='ppactions')
+    prs.p_error = p_error
 
     with open(od / "ptx_parser_ply.py", "w") as f:
         print(prs.get_parser(lexer='ptx_lexer_ply'), file=f)
