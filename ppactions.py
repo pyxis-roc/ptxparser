@@ -38,7 +38,7 @@ class a_predicate(a_predicate):
 
 class a_label(a_args):
     def abstract(self):
-        return Label(self.args[0])
+        return Label(self.args[0].value)
 
 class a_args(a_args):
     def abstract(self):
@@ -105,7 +105,8 @@ class a_target_list(a_target_list):
     def abstract(self):
         args = [self.args[0]]
         args.extend(utils.make_concat_list(self.args[1], sel=[1]))
-        return args
+        # keep this as a list of strings
+        return [x.value for x in args]
 
 class a_toplevel_statements(a_toplevel_statements):
     def abstract(self):
@@ -171,7 +172,10 @@ class a_block(a_block):
 
 class a_var_parametric(a_var_parametric):
     def abstract(self):
-        return ParametricVarname(self.args[0], self.args[2].value)
+        return ParametricVarname(self.args[0].value, self.args[2].value)
+
+class a_varname(ChooseMixin, a_varname):
+    pass
 
 class a_start(a_start):
     def abstract(self):
@@ -220,7 +224,11 @@ class a_varinit_list(a_varinit_list):
 class a_array_decl(a_array_decl):
     def abstract(self):
         dim = list(utils.make_concat_list(self.args[1], sel=[1]))
-        return ArrayDecl(self.args[0], dim)
+        return ArrayDecl(name=self.args[0], dim=dim)
+
+class a_iden(a_iden):
+    def abstract(self):
+        return Id(name=self.args[0].value)
 
 class a_var_decl(a_var_decl):
     def abstract(self):
@@ -233,9 +241,19 @@ class a_var_decl_stmt(a_var_decl_stmt):
 class a_vector_suffixes(ChooseMixin, a_vector_suffixes):
     pass
 
+class a_align_dir(a_align_dir):
+    def abstract(self):
+        return self.args[1].value
+
 class a_vector_extract(a_vector_extract):
     def abstract(self):
         return VectorComp(self.args[0], self.args[1])
+
+class a_vector_operand(a_vector_operand):
+    def abstract(self):
+        elts = [self.args[1]]
+        elts.extend(utils.make_concat_list(self.args[2], sel=[1]))
+        return VectorOpr(elts)
 
 class a_entry(a_entry):
     def abstract(self):

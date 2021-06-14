@@ -29,6 +29,7 @@ if __name__ == "__main__":
                      "DBL_LITERAL1": "Double",
                      "DBL_LITERAL2": "Double",
                      "DBL_LITERAL3": "Double",
+                     "ID": "Iden"
     }
 
     lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')

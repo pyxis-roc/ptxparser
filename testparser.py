@@ -27,74 +27,102 @@ class PTXAST2Code(pa.NodeVisitor):
     def _o(self, s, end='\n'):
         print('   '*self.indent + s, end=end, file=self.of)
 
+    def visit_Id(self, node):
+        return node.name
+
+    def visit_IntLiteral(self, node):
+        x = str(node.value)
+        if node.unsigned: x += "U"
+        return x
+
+    def visit_BinOp(self, node):
+        return f"({self.visit(node.left)}) {node.op} ({self.visit(node.right)})"
+
+    def visit_UnOp(self, node):
+        return f"{node.op} ({self.visit(node.expr)})"
+
+    def visit_Ternary(self, node):
+        return f"({self.visit(node.cond)}) ? ({self.visit(node.true)}) : ({self.visit(node.false)})"
+
+    def visit_Cast(self, node):
+        return f"(({node.cast}) ({self.visit(node.expr)})"
+
+    def visit_ConstExpr(self, node):
+        return self.visit(node.expr)
+
     def visit_ParametricVarname(self, node):
         return f"{node.prefix}<{node.count}>"
 
+    def visit_VectorComp(self, node):
+        return f"{self.visit(node.var)}{node.comp}"
+
+    def visit_Label(self, node):
+        return f"{node.name}:"
+
+    def visit_VectorOpr(self, node):
+        elts = [self.visit(x) for x in node.elts]
+        return f"{{{', '.join(elts)}}}"
+
     def visit_VarInit(self, node):
-
-        if isinstance(node.var.args[0], pa.Node):
-            var = self.visit(node.var.args[0])
-        else:
-            var = _mks(node.var)
-
+        var = self.visit(node.var)
         if node.init:
             var = var + f" = {self.visit(node.init_)}"
 
         return var
 
     def visit_MultivarDecl(self, node):
-        self._o(_mks(node.ss), end=' ')
-        if node.align: self._o(node.align, end=' ')
-        if node.vector: self._o(node.vector, end=' ')
-        self._o(_mks(node.type), end=' ')
+        l = []
+        l.append(_mks(node.ss))
+        if node.align: l.append(f".align {str(node.align)}")
+        if node.vector: l.append(node.vector)
+        l.append(_mks(node.type))
 
         x = []
         for p in node.varinit:
-            if isinstance(p, pa.Node):
-                x.append(self.visit(p))
-            else:
-                x.append(str(p))
+            x.append(self.visit(p))
 
-        self._o(', '.join(x), end='')
-        self._o(';')
+        l.append(', '.join(x))
+        self._o(' '.join(l) + ';')
 
     def visit_Param(self, node):
         out = []
         out.append(node.ss)
-        out.append('' if node.align is None else node.align)
-        out.append('' if node.vector is None else node.vector)
+        if node.align is not None: out.append(node.align)
+        if node.vector is not None: out.append(node.vector)
         out.append(''.join(utils.dfs_token_list_rec(node.type)))
-        out.append(''.join(utils.dfs_token_list_rec(node.name)))
+        out.append(self.visit(node.name))
         return ' '.join(out)
 
 
     def visit_AddressOpr(self, node):
-        out = [node.value]
+        out = [self.visit(node.value)]
         if node.offset is not None:
             out.append("+")
-            out.append(str(node.offset))
+            out.append(self.visit(node.offset))
 
         return f"[{''.join(out)}]"
 
     def visit_Predicate(self, node):
-        return "@{'!' if node.negate else ''}{node.reg}"
+        return f"@{'!' if node.negate else ''}{self.visit(node.reg)}"
+
+    def visit_ArrayDecl(self, node):
+        dim = "".join([f"[{self.visit(v)}]" for v in node.dim])
+        return f"{self.visit(node.name)}{dim}"
 
     def visit_Statement(self, node):
         out = []
-        if node.label: out.append(node.label + ":")
+        if node.label: out.append(self.visit(node.label))
         if node.predicate: out.append(self.visit(node.predicate))
 
         out.append("".join(utils.dfs_token_list_rec(node.opcode)))
 
         sa = []
         for a in node.args:
-            if isinstance(a, str):
-                sa.append(a)
-            elif isinstance(a, pa.Node):
-                sa.append(self.visit(a))
-            else:
-                sa.append(_mks(a))
+            sa.append(self.visit(a))
+            #else:
+            #    sa.append(_mks(a))
 
+        print(sa)
         out.append(", ".join(sa))
         self._o(" ".join(out) + ";")
 
@@ -106,10 +134,12 @@ class PTXAST2Code(pa.NodeVisitor):
         self._o("}")
 
     def visit_Entry(self, node):
-        self._o('.entry', end=' ')
-        self._o(node.name, end = ' ')
+        print(f"in {node.name}")
+        l = ['.entry']
+        l.append(self.visit(node.name))
         p = "(" + ", ".join([self.visit(p) for p in node.params]) + ")"
-        self._o(p)
+        l.append(p)
+        self._o(' '.join(l))
         self.visit(node.body)
 
     def visit_Linker(self, node):
@@ -134,6 +164,7 @@ if __name__ == "__main__":
     p.add_argument("-d", dest="debug", action="store_true", help="Produce parse debug information")
     p.add_argument("-t", dest="tracking", action="store_true", help="Track position")
     p.add_argument("-n", dest="lines", type=int, help="Parse the first N lines", default=1)
+    p.add_argument("-o", dest="output", help="Parsed and Reconstituted output", default="reparse.ptx")
     args = p.parse_args()
 
     with open(args.ptx, 'r') as f:
@@ -147,6 +178,10 @@ if __name__ == "__main__":
         if args.lines == 0: args.lines = len(data)
         data = '\n'.join(data[0:args.lines])
         result = parser.parse(data, lexer=lexer, debug=args.debug, tracking=args.tracking)
+
+        if result is None:
+            sys.exit(1)
+
         result.version = f"{v.group('major')}.{v.group('minor')}"
         #print(result)
 
@@ -156,9 +191,8 @@ if __name__ == "__main__":
         #             for s in x.identifier.body:
         #                 if isinstance(s, pa.Statement):
         #                     print(utils.dfs_token_list_rec(s.opcode))
-        print(result)
 
-        with open("reparse.ptx", "w") as f:
+        with open(args.output, "w") as f:
             v = PTXAST2Code(outputf=f)
             v.visit(result)
 

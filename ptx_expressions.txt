@@ -59,20 +59,22 @@ constexpr ::= ce_ternary
 /* === */
 ID ::= '__external__'
 label ::= ID ':'
-predicate ::= '@' '!'? ID
+iden ::= ID /* use to indicate identifier/variable name not just token */
+predicate ::= '@' '!'? iden
 
-addr_operand ::= '[' ID ('+' ce_int_literal )? ']'
+addr_operand ::= '[' iden ('+' ce_int_literal )? ']'
 
-array_index_calc ::= ID ('+' | '-') constexpr
-array_index ::= '[' (ce_int_literal | ID | array_index_calc) ']'
-array_operand ::= ID array_index+
+array_index_calc ::= iden ('+' | '-') constexpr
+array_index ::= '[' (ce_int_literal | iden | array_index_calc) ']'
+array_operand ::= iden array_index+
 
 /* TODO: test the nesting of these operators */
-vector_operand ::= '{' ID (',' ID)* '}'
+/* TODO: vector operand should accept suffixes? */
+vector_operand ::= '{' iden (',' iden)* '}'
 vector_suffixes ::= '.x' | '.y' | '.z' | '.w' | '.r' | '.g' | '.b' | '.a'
-vector_extract ::= ID vector_suffixes
+vector_extract ::= iden vector_suffixes
 
-args ::= constexpr | ID | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL
+args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL
 arg_list ::= (args (',' args)*)?
 
 /* ptxas accepts 32U and 64U */
@@ -90,13 +92,13 @@ state_spaces ::= '.reg' | '.sreg' | '.const' | '.global' | '.local' | '.param' |
 /* TODO: N => DEC_LITERAL only? */
 ptr_dir ::= '.ptr' state_spaces '.align' DEC_LITERAL
 
-generic_var ::= 'generic' '(' ID ')'
-addr_expr ::= (generic_var | ID) '+' constexpr
+generic_var ::= 'generic' '(' iden ')'
+addr_expr ::= (generic_var | iden) '+' constexpr
 
 /* TODO: array variable declarations */
-array_decl ::= ID ('[' ce_int_literal? ']')+
+array_decl ::= iden ('[' ce_int_literal? ']')+
 var_parametric ::= ID '<' ce_int_literal '>'
-varname ::= ID | array_decl | var_parametric
+varname ::= iden | array_decl | var_parametric
 
 array_elem ::= scalar_init | array_init
 array_elem_list ::= array_elem (',' array_elem)*
@@ -124,7 +126,7 @@ func ::= '.func' param_spec? ID param_spec? '.noreturn'? func_body
 
 /* see the example of .entry cta_fft, but ptxas complains if two entry statements follow each other without a {} */
 /* TODO: pragmas and performance-tuning directives */
-entry ::= '.entry' ID param_spec? block
+entry ::= '.entry' iden param_spec? block
 
 linker_dir ::= '.extern' | '.visible' | '.weak' | '.common'
 

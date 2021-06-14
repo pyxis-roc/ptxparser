@@ -83,3 +83,13 @@ class Double(Token):
         return f"Double({self.value})"
 
     __repr__ = __str__
+
+class Iden(Token):
+    def __init__(self, t):
+        self.args = []
+        self.value = t
+
+    def __str__(self):
+        return f"Iden({self.value})"
+
+    __repr__ = __str__
