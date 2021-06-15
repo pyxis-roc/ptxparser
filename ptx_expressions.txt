@@ -125,7 +125,7 @@ pragma_list ::= pragma (',' pragma)*
 pragma_dir ::= '.pragma' pragma_list
 pragma_stmt ::= pragma_dir ';'
 
-block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt
+block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt | branchtargets_stmt
 block ::= '{' block_stmt* '}'
 
 func_body ::= block?
@@ -167,7 +167,9 @@ toplevel_statements ::= var_decl_stmt | entry | func | linker_stmt | pragma_stmt
 start ::= target_dir toplevel_statements*
 
 file_dir ::= '.file'
-branchtargets_dir ::= '.branchtargets'
+label_list_entry ::= iden | var_parametric
+label_list ::= label_list_entry (',' label_list_entry)*
+branchtargets_stmt ::= '.branchtargets' label_list ';'
 callprototype_dir ::= '.callprototype'
 loc_dir ::= '.loc'
 calltargets_dir ::= '.calltargets'
