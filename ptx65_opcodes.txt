@@ -637,8 +637,7 @@ st_vec_v2_opcode_weak ::= 'st' st_weak st_ss_opt st_weak_cop '.v2' st_v2_types
 @(CONSTRAINT st_vec_v2_opcode_weak (imp (eq st_weak '.weak') (not (in st_ss_opt '.local' '.param') )))
 @(CONSTRAINT st_vec_v2_opcode_weak (imp (eq st_weak '.weak') (eq st_weak_cop '') ))
 
-/* TODO: 128-bit types */
-st_v4_types ::= (st_type - ('.f64' | '.b64' | '.u64' | '.s64' | '.s32' | '.u32' | '.b32' | '.f32'))
+st_v4_types ::= (st_type - ('.f64' | '.b64' | '.u64' | '.s64' ))
 st_vec_v4_opcode_weak ::= 'st' st_weak st_ss_opt st_weak_cop '.v4' st_v4_types
 
 
