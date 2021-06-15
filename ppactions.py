@@ -416,6 +416,22 @@ class a_branchtargets_stmt(a_branchtargets_stmt):
 class a_sel_op(ChooseMixin, a_sel_op):
     pass
 
+class a_vmad_neg_op(a_vmad_neg_op):
+    def abstract(self):
+        x = self.args[1].args[0]
+        if isinstance(x, Id):
+            return SelOpr(x, '', negate=True)
+        else:
+            assert isinstance(x, SelOpr)
+            x.negate = True
+            return x
+
+class a_vmad_stmt(a_vmad_stmt):
+    def abstract(self):
+        return Statement(predicate = self.args[0],
+                         opcode=self.args[1],
+                         args=[self.args[2], self.args[4], self.args[6], self.args[8]])
+
 class a_reg_sel_op(a_reg_sel_op):
     def abstract(self):
-        return SelOpr(self.args[0], self.args[1])
+        return SelOpr(self.args[0], self.args[1], negate=False)

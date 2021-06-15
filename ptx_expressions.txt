@@ -63,7 +63,7 @@ iden ::= ID /* use to indicate identifier/variable name not just token */
 predicate ::= '@' '!'? iden
 
 reg_sel_op ::= iden sel_op /* ptx says sel are applied to register operands */
-
+vmad_neg_op ::= '-' (iden | reg_sel_op) /* const expressions don't have -id */
 addr_operand ::= '[' iden ('+' constexpr )? ']'
 tex_coord ::= iden | vector_operand
 tex_xps_operand ::= '[' iden ',' iden ',' tex_coord ']'
@@ -93,7 +93,7 @@ target_string ::= 'sm_70' | 'sm_72' | 'sm_75' | 'sm_60' | 'sm_61' | 'sm_62' | 's
 target_list ::= ID (',' ID)*
 target_dir ::= '.target' target_list address_size_dir?
 
-/* NOTE: this rejigs ptx65_opcodse.txt */
+/* NOTE: this rejigs ptx65_opcodes.txt */
 state_spaces ::= '.reg' | '.sreg' | '.const' | '.global' | '.local' | '.param' | '.shared' | '.tex'
 /* TODO: only const, global and .tex are initializable */
 
@@ -131,7 +131,7 @@ pragma_list ::= pragma (',' pragma)*
 pragma_dir ::= '.pragma' pragma_list
 pragma_stmt ::= pragma_dir ';'
 
-block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt | branchtargets_stmt
+block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt | branchtargets_stmt | vmad_stmt
 block ::= '{' block_stmt* '}'
 
 func_body ::= block?
@@ -165,6 +165,8 @@ call_ret ::= (call_rp_list ',')?
 call_param ::= (',' call_rp_list)?
 call_fproto_flist ::= (',' iden)?
 call_stmt ::= predicate? 'call' '.uni'? call_ret iden call_param call_fproto_flist ';'
+
+vmad_stmt ::= predicate? vmad_opcode iden ',' vmad_neg_op ',' vmad_neg_op ',' vmad_neg_op ';'
 
 statement ::= predicate? opcodes arg_list ';'
 

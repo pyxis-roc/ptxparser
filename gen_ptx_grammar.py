@@ -34,6 +34,9 @@ COMBINE_OPCODES = {'f_add_opcode': ['half_add_opcode'],
                    'setp_opcode': ['half_setp_opcode']
                    }
 
+# these opcodes are not added to 'opcodes', but shouldn't be deleted either
+IGNORE_OPCODES = set(['vmad_opcode'])
+
 def read_constrained_grammar(gfile):
     with open(gfile, "r") as f:
         gd = f.read()
@@ -157,7 +160,7 @@ def gather_opcodes(gr, opcodes = None):
     if opcodes is None or len(opcodes) == 0:
         out = []
         for r in gr:
-            if r.lhs.value.endswith('_opcode'):
+            if r.lhs.value.endswith('_opcode') and r.lhs.value not in IGNORE_OPCODES:
                 out.append(r.lhs.value)
     else:
         out = opcodes
