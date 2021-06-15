@@ -345,6 +345,14 @@ class a_array_init(a_array_init):
     def abstract(self):
         return ArrayLiteral(elts=self.args[1])
 
+class a_bitbucket_arg(a_bitbucket_arg):
+    def abstract(self):
+        return BitbucketArg()
+
+class a_negated_arg(a_negated_arg):
+    def abstract(self):
+        return NegatedArg(self.args[1])
+
 class a_paired_arg(a_paired_arg):
     def abstract(self):
         return PairedArg(args=(self.args[0], self.args[2]))

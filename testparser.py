@@ -89,6 +89,12 @@ class PTXAST2Code(pa.NodeVisitor):
         y = [self.visit(x) for x in node.elts]
         return f"{{ {', '.join(y)} }}"
 
+    def visit_BitbucketArg(self, node):
+        return "_"
+
+    def visit_NegatedArg(self, node):
+        return f"!{self.visit(node.arg)}"
+
     def visit_PairedArg(self, node):
         return f"{self.visit(node.args[0])}|{self.visit(node.args[1])}"
 

@@ -74,7 +74,9 @@ vector_operand ::= '{' iden (',' iden)* '}'
 vector_suffixes ::= '.x' | '.y' | '.z' | '.w' | '.r' | '.g' | '.b' | '.a'
 vector_extract ::= iden vector_suffixes
 paired_arg ::= args '|' args /* this is too liberal */
-args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg
+negated_arg ::= '!' iden /* only predicate registers */
+bitbucket_arg ::= '_'
+args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | bitbucket_arg
 arg_list ::= (args (',' args)*)?
 
 /* ptxas accepts 32U and 64U */

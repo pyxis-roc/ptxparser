@@ -483,3 +483,4 @@ TOKEN_CC_2 [0123]
 TOKEN_CC_3 [0-7]
 TOKEN_CC_4 [#x20#x9#xd#xa]
 TOKEN_STR_12 '"nounroll"'
+TOKEN_STR_5 '_'
