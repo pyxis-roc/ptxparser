@@ -127,7 +127,7 @@ block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt
 block ::= '{' block_stmt* '}'
 
 func_body ::= block?
-func ::= '.func' param_spec? ID param_spec? '.noreturn'? func_body
+func ::= '.func' param_spec? ID param_spec? '.noreturn'? ( func_body | ';')
 
 /* see the example of .entry cta_fft, but ptxas complains if two entry statements follow each other without a {} */
 /* TODO: pragmas and performance-tuning directives */
