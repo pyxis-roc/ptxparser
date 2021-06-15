@@ -166,7 +166,8 @@ call_param ::= (',' call_rp_list)?
 call_fproto_flist ::= (',' iden)?
 call_stmt ::= predicate? 'call' '.uni'? call_ret iden call_param call_fproto_flist ';'
 
-vmad_stmt ::= predicate? vmad_opcode iden ',' vmad_neg_op ',' vmad_neg_op ',' vmad_neg_op ';'
+vmad_op ::= vmad_neg_op | reg_sel_op | iden
+vmad_stmt ::= predicate? vmad_opcode iden ',' vmad_op ',' vmad_op ',' vmad_op ';'
 
 statement ::= predicate? opcodes arg_list ';'
 

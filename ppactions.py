@@ -432,6 +432,9 @@ class a_vmad_stmt(a_vmad_stmt):
                          opcode=self.args[1],
                          args=[self.args[2], self.args[4], self.args[6], self.args[8]])
 
+class a_vmad_op(ChooseMixin, a_vmad_op):
+    pass
+
 class a_reg_sel_op(a_reg_sel_op):
     def abstract(self):
         return SelOpr(self.args[0], self.args[1], negate=False)
