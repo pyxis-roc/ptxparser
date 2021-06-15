@@ -12,6 +12,10 @@ class a_ce_int_literal(a_ce_int_literal):
     def abstract(self):
         return IntLiteral(self.args[0].value, self.args[0].unsigned)
 
+class a_ce_dbl_literal(a_ce_dbl_literal):
+    def abstract(self):
+        return DblLiteral(self.args[0].value)
+
 class a_ce_literal(a_ce_literal):
     def abstract(self):
         return self.args[0]

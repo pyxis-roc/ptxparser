@@ -36,6 +36,9 @@ class PTXAST2Code(pa.NodeVisitor):
         if node.unsigned: x += "U"
         return x
 
+    def visit_DblLiteral(self, node):
+        return node.value
+
     def visit_BinOp(self, node):
         return f"({self.visit(node.left)}) {node.op} ({self.visit(node.right)})"
 
