@@ -62,7 +62,7 @@ label ::= ID ':'
 iden ::= ID /* use to indicate identifier/variable name not just token */
 predicate ::= '@' '!'? iden
 
-addr_operand ::= '[' iden ('+' ce_int_literal )? ']'
+addr_operand ::= '[' iden ('+' constexpr )? ']'
 
 array_index_calc ::= iden ('+' | '-') constexpr
 array_index ::= '[' (ce_int_literal | iden | array_index_calc) ']'
