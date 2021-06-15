@@ -114,3 +114,5 @@ class BinDouble(Token):
 
     __repr__ = __str__
 
+def Passthru(t):
+    return t

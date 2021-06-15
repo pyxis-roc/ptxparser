@@ -78,9 +78,32 @@ def make_alt_rules(rname, lalt):
         lalt = fold([x[1] for x in lalt], ebnfast.Alternation)
         return [(rname, lalt)]
 
+def gen_sel_mask(grd):
+    sel = set()
+
+    sel = set()
+
+    for o in ['vop_sel', 'vop2_sel', 'vop2_mask', 'vop4_mask']:
+        newr = []
+        for x in generate2(grd, grd[o]):
+            xf = ''.join([xx for xx in flatten(x) if xx != ''])
+
+            sel.add(xf)
+
+    sel.remove('')
+    assert 'sel_op' not in grd
+    return [ebnfast.Rule(ebnfast.Symbol('SEL_OP4'), ebnfast.String('__external__')),
+            ebnfast.Rule(ebnfast.Symbol('sel_op'),
+                        ebnfast.Alternation(ebnfast.Symbol('SEL_OP4'),
+                                            fold([ebnfast.String(x) for x in sel],
+                                                 ebnfast.Alternation)))]
+
+
 def expand_opcodes(gr, opcodes, delete_opcodes, combine_opcodes):
     opcodes = set(opcodes)
     grd = dict([(r.lhs.value, r.rhs) for r in gr])
+
+    sel_op = gen_sel_mask(grd)
 
     combined_opcodes = set()
     for k in combine_opcodes:
@@ -124,6 +147,7 @@ def expand_opcodes(gr, opcodes, delete_opcodes, combine_opcodes):
         else:
             out.append(ebnfast.Rule(r.lhs, grd[r.lhs.value]))
 
+    out.extend(sel_op)
     return out
 
 def gather_opcodes(gr, opcodes = None):

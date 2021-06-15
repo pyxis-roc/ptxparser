@@ -101,6 +101,9 @@ class PTXAST2Code(pa.NodeVisitor):
 
         return "[" + ', '.join(l) + "]"
 
+    def visit_SelOpr(self, node):
+        return f"{self.visit(node.name)}{node.sel}"
+
     def visit_BitbucketArg(self, node):
         return "_"
 

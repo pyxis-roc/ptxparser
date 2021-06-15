@@ -62,6 +62,8 @@ label ::= ID ':'
 iden ::= ID /* use to indicate identifier/variable name not just token */
 predicate ::= '@' '!'? iden
 
+reg_sel_op ::= iden sel_op /* ptx says sel are applied to register operands */
+
 addr_operand ::= '[' iden ('+' constexpr )? ']'
 tex_coord ::= iden | vector_operand
 tex_xps_operand ::= '[' iden ',' iden ',' tex_coord ']'
@@ -78,8 +80,9 @@ vector_suffixes ::= '.x' | '.y' | '.z' | '.w' | '.r' | '.g' | '.b' | '.a'
 vector_extract ::= iden vector_suffixes
 paired_arg ::= args '|' args /* this is too liberal */
 negated_arg ::= '!' iden /* only predicate registers */
+
 bitbucket_arg ::= '_'
-args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | bitbucket_arg | tex_coord_operand
+args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | bitbucket_arg | tex_coord_operand | reg_sel_op
 arg_list ::= (args (',' args)*)?
 
 /* ptxas accepts 32U and 64U */

@@ -412,3 +412,10 @@ class a_label_list(a_label_list):
 class a_branchtargets_stmt(a_branchtargets_stmt):
     def abstract(self):
         return BranchTargets(self.args[1])
+
+class a_sel_op(ChooseMixin, a_sel_op):
+    pass
+
+class a_reg_sel_op(a_reg_sel_op):
+    def abstract(self):
+        return SelOpr(self.args[0], self.args[1])
