@@ -335,7 +335,7 @@ class a_array_elem(ChooseMixin, a_array_elem):
 
 class a_array_elem_list(a_array_elem_list):
     def abstract(self):
-        return list(utils.make_concat_list(self.args[1], sel=[1]))
+        return [self.args[0]] + list(utils.make_concat_list(self.args[1], sel=[1]))
 
 class a_array_init(a_array_init):
     def abstract(self):
