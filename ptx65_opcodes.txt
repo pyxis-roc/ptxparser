@@ -457,12 +457,15 @@ shl_testcase ::= shl_opcode shift_params
 shr_opcode ::= 'shr' (binary | signed_unsigned)
 shr_testcase ::= shr_opcode shift_params
 
-
+/* TODO: mov.v4 */
 /* data movement instructions */
 /* mov really depends on the type of its operands */
 mov_opcode ::= 'mov' (fbus_type | pred)
 mov_params ::= unary_params
 mov_testcase ::= mov_opcode mov_params
+
+/* this is undocumented in the syntax, but appears in other parts of the documentation */
+mov_v4_opcode ::= 'mov' '.v4' fbus_type
 
 mov_pack_unpack_opcode ::= 'mov' binary
 mov_pack_unpack_4_opcode ::= 'mov' (binary - '.b16')

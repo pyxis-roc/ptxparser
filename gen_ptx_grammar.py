@@ -15,7 +15,10 @@ from ebnftools import ebnfast
 import itertools
 import sys
 
-EXPAND_OPCODES = set(['tex_opcode_1', 'tex_opcode_2', 'tex_opcode_3', 'tex_opcode_4', 'cvt_opcode', 'set_opcode', 'f_add_opcode', 'f_sub_opcode', 'f_mul_opcode', 'fma_opcode', 'setp_opcode'])
+EXPAND_OPCODES = set(['tex_opcode_1', 'tex_opcode_2', 'tex_opcode_3', 'tex_opcode_4', 'cvt_opcode', 'set_opcode', 'f_add_opcode', 'f_sub_opcode', 'f_mul_opcode', 'fma_opcode', 'setp_opcode',
+                      'f_rcp_opcode',# shift/reduce conflict with f_rcp_f64
+                      'slct_opcode' # with itself
+])
 
 # these opcodes usually generate duplicate opcodes because they were used to generate test cases
 DELETE_OPCODES = set(['mov_pack_unpack_opcode', 'mov_pack_unpack_4_opcode',
