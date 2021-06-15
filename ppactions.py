@@ -383,3 +383,16 @@ class a_entry_dir(a_entry_dir):
 class a_entry(a_entry):
     def abstract(self):
         return Entry(name=self.args[1], params=self.args[2], directives=self.args[3], body=self.args[4])
+
+class a_label_list_entry(ChooseMixin, a_label_list_entry):
+    pass
+
+class a_label_list(a_label_list):
+    def abstract(self):
+        a = [self.args[0]]
+        a.extend(utils.make_concat_list(self.args[1], sel=[1]))
+        return a
+
+class a_branchtargets_stmt(a_branchtargets_stmt):
+    def abstract(self):
+        return BranchTargets(self.args[1])

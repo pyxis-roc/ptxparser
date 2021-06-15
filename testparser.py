@@ -89,6 +89,9 @@ class PTXAST2Code(pa.NodeVisitor):
         y = [self.visit(x) for x in node.elts]
         return f"{{ {', '.join(y)} }}"
 
+    def visit_BranchTargets(self, node):
+        self._o(".branchtargets " + ", ".join([self.visit(p) for p in node.labels]) + ";")
+
     def visit_BitbucketArg(self, node):
         return "_"
 
