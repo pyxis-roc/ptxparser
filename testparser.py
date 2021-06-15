@@ -92,6 +92,15 @@ class PTXAST2Code(pa.NodeVisitor):
     def visit_BranchTargets(self, node):
         self._o(".branchtargets " + ", ".join([self.visit(p) for p in node.labels]) + ";")
 
+    def visit_TexCoordOpr(self, node):
+        l = []
+        l.append(self.visit(node.texref))
+        if node.sampler:
+            l.append(self.visit(node.sampler))
+        l.append(self.visit(node.texcoord))
+
+        return "[" + ', '.join(l) + "]"
+
     def visit_BitbucketArg(self, node):
         return "_"
 

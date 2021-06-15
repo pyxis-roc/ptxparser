@@ -63,7 +63,10 @@ iden ::= ID /* use to indicate identifier/variable name not just token */
 predicate ::= '@' '!'? iden
 
 addr_operand ::= '[' iden ('+' constexpr )? ']'
-
+tex_coord ::= iden | vector_operand
+tex_xps_operand ::= '[' iden ',' iden ',' tex_coord ']'
+tex_imps_operand ::= '[' iden ',' tex_coord ']'
+tex_coord_operand ::= tex_xps_operand | tex_imps_operand
 array_index_calc ::= iden ('+' | '-') constexpr
 array_index ::= '[' (ce_int_literal | iden | array_index_calc) ']'
 array_operand ::= iden array_index+
@@ -76,7 +79,7 @@ vector_extract ::= iden vector_suffixes
 paired_arg ::= args '|' args /* this is too liberal */
 negated_arg ::= '!' iden /* only predicate registers */
 bitbucket_arg ::= '_'
-args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | bitbucket_arg
+args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | bitbucket_arg | tex_coord_operand
 arg_list ::= (args (',' args)*)?
 
 /* ptxas accepts 32U and 64U */

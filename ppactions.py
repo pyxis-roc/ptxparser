@@ -384,6 +384,22 @@ class a_entry(a_entry):
     def abstract(self):
         return Entry(name=self.args[1], params=self.args[2], directives=self.args[3], body=self.args[4])
 
+class a_tex_xps_operand(a_tex_xps_operand):
+    # explicit sampler
+    def abstract(self):
+        return TexCoordOpr(texref=self.args[1], sampler=self.args[3], texcoord=self.args[5])
+
+class a_tex_imps_operand(a_tex_imps_operand):
+    # implicit sampler
+    def abstract(self):
+        return TexCoordOpr(texref=self.args[1], sampler=None, texcoord=self.args[3])
+
+class a_tex_coord(ChooseMixin,a_tex_coord):
+    pass
+
+class a_tex_coord_operand(ChooseMixin,a_tex_coord_operand):
+    pass
+
 class a_label_list_entry(ChooseMixin, a_label_list_entry):
     pass
 
