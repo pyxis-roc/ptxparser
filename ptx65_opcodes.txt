@@ -487,7 +487,7 @@ mov_pack_4_testcase ::= mov_pack_unpack_4_opcode mov_pack_4_params
 mov_unpack_4_testcase ::= mov_pack_unpack_4_opcode mov_unpack_4_params
 
 /* remove shfl without sync */
-shfl_opcode ::= 'shfl' '.sync' ('.up' | '.down' | '.bfly' | '.idx') '.b32'
+shfl_opcode ::= 'shfl' '.sync'? ('.up' | '.down' | '.bfly' | '.idx') '.b32'
 
 /* todo: constraints on values for b, c and membermask*/
 shfl_params_1 ::= 'out_d_type0_perthread' ',' 'in_a_type0_perthread' ',' 'in_b_type0_perthread' ',' 'in_c_type0_perthread' ',' 'in_membermask_type0'
@@ -1182,8 +1182,8 @@ red_testcase ::= red_opcode red_params
 
 vote_mode ::= '.all' | '.any' | '.uni'
 
-vote_opcode_pred ::= 'vote' '.sync' vote_mode pred
-vote_opcode_ballot ::= 'vote' '.sync' '.ballot' b32
+vote_opcode_pred ::= 'vote' '.sync'? vote_mode pred
+vote_opcode_ballot ::= 'vote' '.sync'? '.ballot' b32
 
 vote_pred_params ::= 'out_d_pred_perthread' ',' '!'? 'in_a_pred_perthread' ',' 'in_membermask_b32'
 vote_ballot_params ::= 'out_d_b32_perthread' ',' '!'? 'in_a_pred_perthread' ',' 'in_membermask_b32'

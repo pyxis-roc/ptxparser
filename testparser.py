@@ -64,7 +64,7 @@ class PTXAST2Code(pa.NodeVisitor):
     def visit_VarInit(self, node):
         var = self.visit(node.var)
         if node.init:
-            var = var + f" = {self.visit(node.init_)}"
+            var = var + f" = {self.visit(node.init)}"
 
         return var
 
@@ -82,10 +82,17 @@ class PTXAST2Code(pa.NodeVisitor):
         l.append(', '.join(x))
         self._o(' '.join(l) + ';')
 
+    def visit_ArrayLiteral(self, node):
+        y = [self.visit(x) for x in node.elts]
+        return f"{{ {', '.join(y)} }}"
+
+    def visit_PairedArg(self, node):
+        return f"{self.visit(node.args[0])}|{self.visit(node.args[1])}"
+
     def visit_Param(self, node):
         out = []
         out.append(node.ss)
-        if node.align is not None: out.append(node.align)
+        if node.align: out.append(f".align {str(node.align)}")
         if node.vector is not None: out.append(node.vector)
         out.append(''.join(utils.dfs_token_list_rec(node.type)))
         out.append(self.visit(node.name))
@@ -112,13 +119,9 @@ class PTXAST2Code(pa.NodeVisitor):
     def visit_Label(self, node):
         self._o(f"{node.name}:")
 
-    def visit_Statement(self, node):
-        out = []
-        if node.predicate: out.append(self.visit(node.predicate))
-        out.append("".join(utils.dfs_token_list_rec(node.opcode)))
-
+    def _visit_args(self, arglist):
         sa = []
-        for a in node.args:
+        for a in arglist:
             if isinstance(a, pa.Node):
                 sa.append(self.visit(a))
             elif isinstance(a, ptxtokens.BinFloat):
@@ -131,7 +134,34 @@ class PTXAST2Code(pa.NodeVisitor):
             #else:
             #    sa.append(_mks(a))
 
-        out.append(", ".join(sa))
+        return ", ".join(sa)
+
+    def visit_CallStmt(self, node):
+        out = []
+        if node.predicate: out.append(self.visit(node.predicate))
+        out.append(node.opcode)
+
+        args = []
+        if node.ret_params:
+            args.append("(" + self._visit_args(node.ret_params)   + ")")
+
+        args.append(self.visit(node.func))
+
+        if node.params:
+            args.append("(" + self._visit_args(node.params)   + ")")
+
+        if node.targets:
+            args.append(self.visit(node.targets))
+
+        out.append(", ".join(args))
+
+        self._o(" ".join(out) + ";")
+
+    def visit_Statement(self, node):
+        out = []
+        if node.predicate: out.append(self.visit(node.predicate))
+        out.append("".join(utils.dfs_token_list_rec(node.opcode)))
+        out.append(self._visit_args(node.args))
         self._o(" ".join(out) + ";")
 
     def visit_Block(self, node):
@@ -141,11 +171,40 @@ class PTXAST2Code(pa.NodeVisitor):
         self._exit_block()
         self._o("}")
 
+    def visit_Func(self, node):
+        l = ['.func']
+        if node.ret_params:
+            r = "(" + ", ".join([self.visit(p) for p in node.ret_params]) + ")"
+            l.append(r)
+
+        l.append(self.visit(node.name))
+
+        if node.params:
+            p = "(" + ", ".join([self.visit(p) for p in node.params]) + ")"
+            l.append(p)
+
+        if node.noreturn:
+            l.append('.noreturn')
+
+        self._o(' '.join(l))
+        if node.body:
+            self.visit(node.body)
+        else:
+            self._o(';') #TODO
+
+    def visit_EntryDir(self, node):
+        return f"{node.name} {', '.join([self.visit(p) for p in node.args])}"
+
     def visit_Entry(self, node):
         l = ['.entry']
         l.append(self.visit(node.name))
-        p = "(" + ", ".join([self.visit(p) for p in node.params]) + ")"
-        l.append(p)
+        if node.params:
+            p = "(" + ", ".join([self.visit(p) for p in node.params]) + ")"
+            l.append(p)
+
+        if node.directives:
+            l.append(' '.join([self.visit(d) for d in node.directives]))
+
         self._o(' '.join(l))
         self.visit(node.body)
 
@@ -172,6 +231,7 @@ if __name__ == "__main__":
     p.add_argument("-t", dest="tracking", action="store_true", help="Track position")
     p.add_argument("-n", dest="lines", type=int, help="Parse the first N lines", default=1)
     p.add_argument("-o", dest="output", help="Parsed and Reconstituted output", default="reparse.ptx")
+    p.add_argument("-a", dest="ast", help="Show AST", action="store_true")
     args = p.parse_args()
 
     with open(args.ptx, 'r') as f:
@@ -190,7 +250,8 @@ if __name__ == "__main__":
             sys.exit(1)
 
         result.version = f"{v.group('major')}.{v.group('minor')}"
-        #print(result)
+        if args.ast:
+            print(result)
 
         # for x in result:
         #     if isinstance(x, pa.Linker):

@@ -59,6 +59,7 @@ class a_arg_list(a_arg_list):
         else:
             args = [self.args[0].args[0]]
             args.extend(utils.make_concat_list(self.args[0].args[1], sel=[1]))
+
         return args
 
 class a_pragma(ChooseMixin, a_pragma):
@@ -289,6 +290,84 @@ class a_vector_operand(a_vector_operand):
         elts.extend(utils.make_concat_list(self.args[2], sel=[1]))
         return VectorOpr(elts)
 
+class a_call_rp_list(a_call_rp_list):
+    def abstract(self):
+        return self.args[1]
+
+class a_call_ret(a_call_ret):
+    def abstract(self):
+        if self.args[0]:
+            return self.args[0].args[0]
+
+class a_call_param(a_call_param):
+    def abstract(self):
+        if self.args[0]:
+            return self.args[0].args[1]
+
+class a_call_fproto_flist(a_call_fproto_flist):
+    def abstract(self):
+        if self.args[0]:
+            return self.args[0].args[1]
+
+class a_call_stmt(a_call_stmt):
+    def abstract(self):
+        return CallStmt(predicate=self.args[0],
+                        opcode=''.join([self.args[1], self.args[2] if '.uni' else '']),
+                        ret_params=self.args[3],
+                        func=self.args[4],
+                        params=self.args[5],
+                        targets=self.args[6])
+
+class a_func_body(a_func_body):
+    def abstract(self):
+        return self.args[0]
+
+class a_scalar_init(a_scalar_init):
+    def abstract(self):
+        return self.args[0]
+
+class a_varinitializer(a_varinitializer):
+    def abstract(self):
+        return self.args[1].args[0]
+
+class a_array_elem(ChooseMixin, a_array_elem):
+    pass
+
+class a_array_elem_list(a_array_elem_list):
+    def abstract(self):
+        return list(utils.make_concat_list(self.args[1], sel=[1]))
+
+class a_array_init(a_array_init):
+    def abstract(self):
+        return ArrayLiteral(elts=self.args[1])
+
+class a_paired_arg(a_paired_arg):
+    def abstract(self):
+        return PairedArg(args=(self.args[0], self.args[2]))
+
+class a_func(a_func):
+    def abstract(self):
+        return Func(name=self.args[2], ret_params=self.args[1], params=self.args[3],
+                    noreturn=self.args[4] is not None, body=self.args[5])
+
+class a_dim_list(a_dim_list):
+    def abstract(self):
+        a = [self.args[0]]
+        if self.args[1]: a.append(self.args[1].args[1])
+        if self.args[2]: a.append(self.args[2].args[1])
+        return a
+
+class a_entry_dir_list(a_entry_dir_list):
+    def abstract(self):
+        if self.args[0]:
+            return list(utils.make_concat_list(self.args[0]))
+
+class a_entry_dir(a_entry_dir):
+    def abstract(self):
+        a = self.args[0].args[1]
+        if not isinstance(a, list): a = [a]
+        return EntryDir(self.args[0].args[0], a)
+
 class a_entry(a_entry):
     def abstract(self):
-        return Entry(self.args[1], self.args[2], self.args[3])
+        return Entry(name=self.args[1], params=self.args[2], directives=self.args[3], body=self.args[4])

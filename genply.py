@@ -20,6 +20,7 @@ def t_error(t):
 
     print("    " + line, file=sys.stderr)
 
+    # TODO: handle tabs in line correctly when positioning arrow
     if False:
         arrow = "----^"
     else:

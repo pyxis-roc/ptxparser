@@ -18,7 +18,9 @@ import sys
 EXPAND_OPCODES = set(['tex_opcode_1', 'tex_opcode_2', 'tex_opcode_3', 'tex_opcode_4', 'cvt_opcode', 'set_opcode', 'f_add_opcode', 'f_sub_opcode', 'f_mul_opcode', 'fma_opcode', 'setp_opcode'])
 
 # these opcodes usually generate duplicate opcodes because they were used to generate test cases
-DELETE_OPCODES = set(['mov_pack_unpack_opcode', 'mov_pack_unpack_4_opcode'])
+DELETE_OPCODES = set(['mov_pack_unpack_opcode', 'mov_pack_unpack_4_opcode',
+                      'call_opcode' # has a more complex encoding as call_stmt in ptx_expressions
+])
 
 # append rules given in the list to the rule in the key
 COMBINE_OPCODES = {'f_add_opcode': ['half_add_opcode'],
