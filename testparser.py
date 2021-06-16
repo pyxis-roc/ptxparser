@@ -12,7 +12,11 @@ import sys
 import time
 
 def _mks(ct):
-    return ''.join(utils.dfs_token_list_rec(ct))
+    if isinstance(ct, str):
+        # we should prohibit string tokens in RHS except for singletons?
+        return ct
+    else:
+        return ''.join(utils.dfs_token_list_rec(ct))
 
 class PTXAST2Code(pa.NodeVisitor):
     def __init__(self, outputf):
@@ -136,7 +140,7 @@ class PTXAST2Code(pa.NodeVisitor):
         return f"@{'!' if node.negate else ''}{self.visit(node.reg)}"
 
     def visit_ArrayDecl(self, node):
-        dim = "".join([f"[{self.visit(v)}]" for v in node.dim])
+        dim = "".join([f"[{self.visit(v) if v is not None else ''}]" for v in node.dim])
         return f"{self.visit(node.name)}{dim}"
 
     def visit_PragmaDir(self, node):
