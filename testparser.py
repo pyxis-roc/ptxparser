@@ -9,6 +9,7 @@ import ptxgenactions as pga
 import ptxast as pa
 from ebnftools.convert.ply import utils
 import sys
+import time
 
 def _mks(ct):
     return ''.join(utils.dfs_token_list_rec(ct))
@@ -246,6 +247,12 @@ class PTXAST2Code(pa.NodeVisitor):
         self._o(f".version {node.version}")
         self.generic_visit(node)
 
+def perf(start, end, size):
+    total = end - start # fractions of seconds
+    size = size / 1048576 # in MiB
+
+    return size / total # MiB/s
+
 # PTX is ASCII
 version_dir_re = re.compile(r'\s*.version[ \t]+(?P<major>[0-9])\.(?P<minor>[0-9]+)', re.ASCII)
 
@@ -269,8 +276,11 @@ if __name__ == "__main__":
         data = data[len(v.group(0)):].split('\n')
         if args.lines == 0: args.lines = len(data)
         data = '\n'.join(data[0:args.lines])
+        start = time.monotonic()
         result = parser.parse(data, lexer=lexer, debug=args.debug, tracking=args.tracking)
-
+        end = time.monotonic()
+        speed = perf(start, end, len(data))
+        print(f"Total time: {(end - start):0.2f}s ({speed:0.2f} MB/s)")
         if result is None:
             sys.exit(1)
 

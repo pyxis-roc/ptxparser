@@ -1184,7 +1184,8 @@ red_testcase ::= red_opcode red_params
 vote_mode ::= '.all' | '.any' | '.uni'
 
 vote_opcode_pred ::= 'vote' '.sync'? vote_mode pred
-vote_opcode_ballot ::= 'vote' '.sync'? '.ballot' b32
+/* TODO: until generic modifier handling is supported */
+vote_opcode_ballot ::= 'vote' '.sync'? '.ballot' '.sync'? b32
 
 vote_pred_params ::= 'out_d_pred_perthread' ',' '!'? 'in_a_pred_perthread' ',' 'in_membermask_b32'
 vote_ballot_params ::= 'out_d_b32_perthread' ',' '!'? 'in_a_pred_perthread' ',' 'in_membermask_b32'
