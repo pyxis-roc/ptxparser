@@ -633,8 +633,7 @@ st_nonvec_params ::= '[' 'in_a_type0_addr_mod' ']' ',' 'in_b_type0'
 
 st_nonvec_testcase ::= st_opcode_nonvec st_nonvec_params
 
-/* TODO: 128-bit types */
-st_v2_types ::= (st_type - ('.f64' | '.b64' | '.u64' | '.s64'))
+st_v2_types ::= st_type
 st_vec_v2_opcode_weak ::= 'st' st_weak st_ss_opt st_weak_cop '.v2' st_v2_types
 
 @(CONSTRAINT st_vec_v2_opcode_weak (imp (eq st_weak '.weak') (not (in st_ss_opt '.local' '.param') )))
