@@ -139,6 +139,21 @@ class PTXAST2Code(pa.NodeVisitor):
     def visit_Predicate(self, node):
         return f"@{'!' if node.negate else ''}{self.visit(node.reg)}"
 
+    def visit_DwarfLabel(self, node):
+        o = f"+{self.visit(node.offset)}" if node.offset is not None else ""
+        return f"{node.name.value}{o}"
+
+    def visit_DwarfLine(self, node):
+        c = ", ".join([hex(d.value) for d in node.contents]) if isinstance(node.contents, list) else self.visit(node.contents)
+        self._o(f"{node.dir} {c}")
+
+    def visit_SectionDir(self, node):
+        self._o(f".section {node.name.value} {{")
+        self._enter_block()
+        self.generic_visit(node)
+        self._exit_block()
+        self._o("}")
+
     def visit_ArrayDecl(self, node):
         dim = "".join([f"[{self.visit(v) if v is not None else ''}]" for v in node.dim])
         return f"{self.visit(node.name)}{dim}"

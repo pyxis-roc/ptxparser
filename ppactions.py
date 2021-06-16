@@ -438,3 +438,22 @@ class a_vmad_op(ChooseMixin, a_vmad_op):
 class a_reg_sel_op(a_reg_sel_op):
     def abstract(self):
         return SelOpr(self.args[0], self.args[1], negate=False)
+
+class a_dwarf_int_list(a_dwarf_int_list):
+    def abstract(self):
+        a = [self.args[0]]
+        a.extend(utils.make_concat_list(self.args[1], sel=[1]))
+        return a
+
+class a_dwarf_label(a_dwarf_label):
+    def abstract(self):
+        offset = None if self.args[1] is None else self.args[1].args[1]
+        return DwarfLabel(self.args[0].args[0], offset)
+
+class a_dwarf_lines(a_dwarf_lines):
+    def abstract(self):
+        return DwarfLine(self.args[0], self.args[1])
+
+class a_section_dir(a_section_dir):
+    def abstract(self):
+        return SectionDir(self.args[1].args[0], list(utils.make_concat_list(self.args[3])))

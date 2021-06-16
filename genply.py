@@ -73,7 +73,9 @@ if __name__ == "__main__":
                      "DBL_LITERAL3": "Double",
                      "FLTX_LITERAL": "BinFloat",
                      "DBLX_LITERAL": "BinDouble",
-                     "ID": "Iden"
+                     "ID": "Iden",
+                     "SECTION_NAME": "Iden", # SECTION_NAME /\.([a-zA-Z][a-zA-Z0-9_$]*)|([_$%][A-Za-z0-9_$]+)/
+
     }
 
     lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')
