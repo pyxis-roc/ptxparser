@@ -471,6 +471,15 @@ class a_file_dir(a_file_dir):
         return File(index=self.args[1].value,
                     name=self.args[2],
                     timestamp_size=self.args[3])
+class a_function_list(a_function_list):
+    def abstract(self):
+        a = [self.args[0]]
+        a.extend(utils.make_concat_list(self.args[1], sel=[1]))
+        return a
+
+class a_calltargets_dir(a_calltargets_dir):
+    def abstract(self):
+        return CallTargets(self.args[1])
 
 class a_loc_dir(a_loc_dir):
     def abstract(self):

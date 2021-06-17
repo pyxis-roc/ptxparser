@@ -132,7 +132,7 @@ pragma_list ::= pragma (',' pragma)*
 pragma_dir ::= '.pragma' pragma_list
 pragma_stmt ::= pragma_dir ';'
 
-block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt | branchtargets_stmt | vmad_stmt | loc_dir
+block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt | branchtargets_stmt | vmad_stmt | loc_dir  | calltargets_dir
 block ::= '{' block_stmt* '}'
 
 func_body ::= block?
@@ -179,8 +179,10 @@ start ::= target_dir toplevel_statements*
 label_list_entry ::= iden | var_parametric
 label_list ::= label_list_entry (',' label_list_entry)*
 branchtargets_stmt ::= '.branchtargets' label_list ';'
+
+function_list ::= iden (',' iden)*
 callprototype_dir ::= '.callprototype'
-calltargets_dir ::= '.calltargets'
+calltargets_dir ::= '.calltargets' function_list ';'
 local_dir ::= '.local'
 
 /* TODO: section_name token usually interferes with directives  */
