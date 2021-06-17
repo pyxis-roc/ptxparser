@@ -99,8 +99,9 @@ state_spaces ::= '.reg' | '.sreg' | '.const' | '.global' | '.local' | '.param' |
 /* TODO: N => DEC_LITERAL only? */
 ptr_dir ::= '.ptr' state_spaces '.align' DEC_LITERAL
 
-generic_var ::= 'generic' '(' iden ')'
-addr_expr ::= (generic_var | iden) '+' constexpr
+generic_var ::= iden '(' iden ')'
+addr_expr_offset ::= '+' constexpr
+addr_expr ::= (generic_var | iden) addr_expr_offset?
 
 /* TODO: array variable declarations */
 array_decl ::= iden ('[' ce_int_literal? ']')+

@@ -41,6 +41,13 @@ class PTXAST2Code(pa.NodeVisitor):
         if node.unsigned: x += "U"
         return x
 
+    def visit_Generic(self, node):
+        return f"generic({self.visit(node.name)})"
+
+    def visit_AddrExpr(self, node):
+        off = "" if node.offset is None else f"+{self.visit(node.offset)}"
+        return f"{self.visit(node.var)}{off}"
+
     def visit_DblLiteral(self, node):
         return node.value
 

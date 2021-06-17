@@ -231,6 +231,19 @@ class a_target_dir(a_target_dir):
     def abstract(self):
         return Target(targets=self.args[1], address_size=self.args[2])
 
+class a_generic_var(a_generic_var):
+    def abstract(self):
+        assert self.args[0].name == "generic"  # ID
+        return Generic(self.args[2])
+
+class a_addr_expr_offset(a_addr_expr_offset):
+    def abstract(self):
+        return self.args[1]
+
+class a_addr_expr(a_addr_expr):
+    def abstract(self):
+        return AddrExpr(var=self.args[0].args[0], offset=self.args[1])
+
 class a_addr_operand(a_addr_operand):
     def abstract(self):
         # TODO: handle immediate 32-bit addresses
