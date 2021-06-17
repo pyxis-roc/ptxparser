@@ -492,3 +492,7 @@ class a_callprototype_dir(a_callprototype_dir):
     def abstract(self):
         assert self.args[2].name == "_", f".callprototype syntax error"
         return CallPrototype(self.args[1], self.args[3], noreturn=self.args[4] is not None)
+
+class a_alias_dir(a_alias_dir):
+    def abstract(self):
+        return Alias(self.args[1], self.args[3])

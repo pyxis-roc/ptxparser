@@ -227,6 +227,9 @@ class PTXAST2Code(pa.NodeVisitor):
         self._exit_block()
         self._o("}")
 
+    def visit_Alias(self, node):
+        self._o(f'.alias {self.visit(node.falias)}, {self.visit(node.aliasee)};')
+
     def visit_CallPrototype(self, node):
         l = ['.callprototype']
         if node.ret_params:
