@@ -75,7 +75,8 @@ array_operand ::= iden array_index+
 
 /* TODO: test the nesting of these operators */
 /* TODO: vector operand should accept suffixes? */
-vector_operand ::= '{' iden (',' iden)* '}'
+vector_operand_comp ::= iden | constexpr
+vector_operand ::= '{' vector_operand_comp (',' vector_operand_comp )* '}'
 vector_suffixes ::= '.x' | '.y' | '.z' | '.w' | '.r' | '.g' | '.b' | '.a'
 vector_extract ::= iden vector_suffixes
 paired_arg ::= args '|' args /* this is too liberal */

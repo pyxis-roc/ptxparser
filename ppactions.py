@@ -266,7 +266,7 @@ class a_param_decl(a_param_decl):
 class a_varinit_list(a_varinit_list):
     def abstract(self):
         if self.args[2] is None:
-            return [VarInit(self.args[0], self.args[1])]
+            return VarInit(self.args[0], self.args[1])
         else:
             a2 = utils.make_concat_list(self.args[2], sel=[1])
             x = [VarInit(self.args[0], self.args[1])]
@@ -284,6 +284,9 @@ class a_iden(a_iden):
 
 class a_var_decl(a_var_decl):
     def abstract(self):
+        if not isinstance(self.args[4], list):
+            self.args[4] = [self.args[4]]
+
         return MultivarDecl(self.args[0], self.args[1], self.args[2], self.args[3], self.args[4])
 
 class a_var_decl_stmt(a_var_decl_stmt):
@@ -300,6 +303,10 @@ class a_align_dir(a_align_dir):
 class a_vector_extract(a_vector_extract):
     def abstract(self):
         return VectorComp(self.args[0], self.args[1])
+
+class a_vector_operand_comp(a_vector_operand_comp):
+    def abstract(self):
+        return self.args[0]
 
 class a_vector_operand(a_vector_operand):
     def abstract(self):
