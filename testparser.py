@@ -94,6 +94,7 @@ class PTXAST2Code(pa.NodeVisitor):
         y = [self.visit(x) for x in node.elts]
         return f"{{ {', '.join(y)} }}"
 
+
     def visit_CallTargets(self, node):
         self._o(".calltargets " + ", ".join([self.visit(p) for p in node.labels]) + ";")
 
@@ -225,6 +226,23 @@ class PTXAST2Code(pa.NodeVisitor):
         self.generic_visit(node)
         self._exit_block()
         self._o("}")
+
+    def visit_CallPrototype(self, node):
+        l = ['.callprototype']
+        if node.ret_params:
+            r = "(" + ", ".join([self.visit(p) for p in node.ret_params]) + ")"
+            l.append(r)
+
+        l.append("_")
+
+        if node.params:
+            p = "(" + ", ".join([self.visit(p) for p in node.params]) + ")"
+            l.append(p)
+
+        if node.noreturn:
+            l.append('.noreturn')
+
+        self._o(' '.join(l) + ';')
 
     def visit_Func(self, node):
         l = ['.func']

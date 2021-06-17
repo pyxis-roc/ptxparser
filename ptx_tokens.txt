@@ -1,4 +1,4 @@
-ID /([a-zA-Z][a-zA-Z0-9_$]*)|([_$%][A-Za-z0-9_$]+)/
+ID /([a-zA-Z][a-zA-Z0-9_$]*)|([_$%][A-Za-z0-9_$]+)|_/
 QUOTED_STR /"[^"]*"/
 SPACE [#x20#x9#xd]
 TOKEN_STR_252 '.1d'
@@ -484,7 +484,6 @@ TOKEN_CC_1 [1-9a-f]
 TOKEN_CC_2 [0123]
 TOKEN_CC_3 [0-7]
 TOKEN_CC_4 [#x20#x9#xd#xa]
-TOKEN_STR_5 '_'
 TOKEN_STR_26 '.h12'
 TOKEN_STR_29 '.h32'
 TOKEN_STR_33 '.h00'
@@ -500,3 +499,4 @@ TOKEN_STR_74 '.h22'
 TOKEN_STR_78 '.h01'
 TOKEN_STR_88 '.h11'
 TOKEN_STR_96 '.h02'
+TOKEN_STR_5 '_'

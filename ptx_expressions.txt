@@ -81,8 +81,7 @@ vector_extract ::= iden vector_suffixes
 paired_arg ::= args '|' args /* this is too liberal */
 negated_arg ::= '!' iden /* only predicate registers */
 
-bitbucket_arg ::= '_'
-args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | bitbucket_arg | tex_coord_operand | reg_sel_op
+args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | tex_coord_operand | reg_sel_op
 arg_list ::= (args (',' args)*)?
 
 /* ptxas accepts 32U and 64U */
@@ -132,11 +131,14 @@ pragma_list ::= pragma (',' pragma)*
 pragma_dir ::= '.pragma' pragma_list
 pragma_stmt ::= pragma_dir ';'
 
-block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt | branchtargets_stmt | vmad_stmt | loc_dir  | calltargets_dir
+block_stmt ::= label | statement | var_decl_stmt | block | pragma_stmt | call_stmt | branchtargets_stmt | vmad_stmt | loc_dir  | calltargets_dir | callprototype_dir
 block ::= '{' block_stmt* '}'
 
 func_body ::= block?
 func ::= '.func' param_spec? iden param_spec? '.noreturn'? func_body  ';'?
+
+/* iden must be _ */
+callprototype_dir ::= '.callprototype' param_spec? iden param_spec? '.noreturn'? ';'
 
 dim_list ::= ce_int_literal (',' ce_int_literal)? (',' ce_int_literal)?
 
@@ -181,7 +183,6 @@ label_list ::= label_list_entry (',' label_list_entry)*
 branchtargets_stmt ::= '.branchtargets' label_list ';'
 
 function_list ::= iden (',' iden)*
-callprototype_dir ::= '.callprototype'
 calltargets_dir ::= '.calltargets' function_list ';'
 local_dir ::= '.local'
 

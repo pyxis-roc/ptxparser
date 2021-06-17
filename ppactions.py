@@ -316,7 +316,7 @@ class a_call_fproto_flist(a_call_fproto_flist):
 class a_call_stmt(a_call_stmt):
     def abstract(self):
         return CallStmt(predicate=self.args[0],
-                        opcode=''.join([self.args[1], self.args[2] if '.uni' else '']),
+                        opcode=''.join([self.args[1], '.uni' if self.args[2] else '']),
                         ret_params=self.args[3],
                         func=self.args[4],
                         params=self.args[5],
@@ -345,9 +345,9 @@ class a_array_init(a_array_init):
     def abstract(self):
         return ArrayLiteral(elts=self.args[1])
 
-class a_bitbucket_arg(a_bitbucket_arg):
-    def abstract(self):
-        return BitbucketArg()
+# class a_bitbucket_arg(a_bitbucket_arg):
+#     def abstract(self):
+#         return BitbucketArg()
 
 class a_negated_arg(a_negated_arg):
     def abstract(self):
@@ -471,6 +471,7 @@ class a_file_dir(a_file_dir):
         return File(index=self.args[1].value,
                     name=self.args[2],
                     timestamp_size=self.args[3])
+
 class a_function_list(a_function_list):
     def abstract(self):
         a = [self.args[0]]
@@ -486,3 +487,8 @@ class a_loc_dir(a_loc_dir):
         return Loc(self.args[1].value,
                    self.args[2].value,
                    self.args[3].value)
+
+class a_callprototype_dir(a_callprototype_dir):
+    def abstract(self):
+        assert self.args[2].name == "_", f".callprototype syntax error"
+        return CallPrototype(self.args[1], self.args[3], noreturn=self.args[4] is not None)
