@@ -147,6 +147,13 @@ class PTXAST2Code(pa.NodeVisitor):
         c = ", ".join([hex(d.value) for d in node.contents]) if isinstance(node.contents, list) else self.visit(node.contents)
         self._o(f"{node.dir} {c}")
 
+    def visit_File(self, node):
+        ts = f", {node.timestamp_size[0]}, {node.timestamp_size[1]}" if node.timestamp_size else ""
+        self._o(f'.file {node.index} {node.name} {ts}')
+
+    def visit_Loc(self, node):
+        self._o(f'.loc {node.index} {node.line} {node.col}')
+
     def visit_SectionDir(self, node):
         self._o(f".section {node.name.value} {{")
         self._enter_block()

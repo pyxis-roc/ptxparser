@@ -457,3 +457,23 @@ class a_dwarf_lines(a_dwarf_lines):
 class a_section_dir(a_section_dir):
     def abstract(self):
         return SectionDir(self.args[1].args[0], list(utils.make_concat_list(self.args[3])))
+
+class a_filename(a_filename):
+    def abstract(self):
+        return self.args[0]
+
+class a_fileinfo(a_fileinfo):
+    def abstract(self):
+        return (self.args[1].value, self.args[3].value)
+
+class a_file_dir(a_file_dir):
+    def abstract(self):
+        return File(index=self.args[1].value,
+                    name=self.args[2],
+                    timestamp_size=self.args[3])
+
+class a_loc_dir(a_loc_dir):
+    def abstract(self):
+        return Loc(self.args[1].value,
+                   self.args[2].value,
+                   self.args[3].value)
