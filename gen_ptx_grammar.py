@@ -15,9 +15,28 @@ from ebnftools import ebnfast
 import itertools
 import sys
 
-EXPAND_OPCODES = set(['tex_opcode_1', 'tex_opcode_2', 'tex_opcode_3', 'tex_opcode_4', 'cvt_opcode', 'set_opcode', 'f_add_opcode', 'f_sub_opcode', 'f_mul_opcode', 'fma_opcode', 'setp_opcode',
+# didn't seem to help much
+# precedence = (
+#     ('right', 'TOKEN_Q', 'TOKEN_COLON'),
+#     ('left', 'TOKEN_LOR'),
+#     ('left', 'TOKEN_LAND'),
+#     ('left', 'TOKEN_OR'),
+#     ('left', 'TOKEN_CARET'),
+#     ('left', 'TOKEN_AND'),
+#     ('left', 'TOKEN_EQ', 'TOKEN_NE'),
+#     ('left', 'TOKEN_LT', 'TOKEN_GT', 'TOKEN_LE', 'TOKEN_GE'),
+#     ('left', 'TOKEN_LSHIFT', 'TOKEN_RSHIFT'),
+#     ('left', 'TOKEN_PLUS', 'TOKEN_MINUS'),
+#     ('left', 'TOKEN_MUL', 'TOKEN_DIV', 'TOKEN_PERC'),
+#     ('right', 'TOKEN_S64', 'TOKEN_U64'),
+#     ('right', 'TOKEN_BANG', 'TOKEN_TILD'), # UMINUS and UPLUS were on the rule
+#     )
+
+
+EXPAND_OPCODES = set(['tex_opcode_1', 'tex_opcode_2', 'tex_opcode_3', 'tex_opcode_4', 'tld4_opcode', 'cvt_opcode', 'set_opcode', 'f_add_opcode', 'f_sub_opcode', 'f_mul_opcode', 'fma_opcode', 'setp_opcode',
                       'f_rcp_opcode',# shift/reduce conflict with f_rcp_f64
                       'slct_opcode' # with itself
+                      #'wmma_load_opcode', # with itself [leads to a lot more shift/reduce conflicts?'
 ])
 
 # these opcodes usually generate duplicate opcodes because they were used to generate test cases
