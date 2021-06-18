@@ -37,9 +37,10 @@ if __name__ == "__main__":
         if v[0] > pp.PTX_VERSION_MAX:
             print(f"WARNING: Parser only supports upto {pp.PTX_VERSION_MAX[0]}.{pp.PTX_VERSION_MAX[1]}")
 
-        data = data.split('\n')
-        if args.lines == 0: args.lines = len(data)
-        data = '\n'.join(data[0:args.lines])
+        if args.lines > 0:
+            args.lines = len(data)
+            data = data.split('\n')
+            data = '\n'.join(data[0:args.lines])
 
         print("starting")
         start = time.monotonic()
@@ -48,13 +49,15 @@ if __name__ == "__main__":
             while lexer.token() is not None: pass
             result = None
         else:
-            result = pp.ptx_parse(data, debug=args.debug)
+            result = pp.ptx_parse(data, debug=args.debug, parse_unsupported=True)
+
         end = time.monotonic()
 
         speed = perf(start, end, len(data))
         print(f"Total time: {(end - start):0.2f}s ({speed:0.2f} MB/s)")
 
         if result is None:
+            print(f"Parser failed")
             sys.exit(1)
 
         if args.ast and result:

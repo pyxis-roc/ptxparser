@@ -118,7 +118,9 @@ attribute_spec ::= '.managed'
 attribute_spec_list ::= attribute_spec (',' attribute_spec)*
 attribute_dir ::= '.attribute' '(' attribute_spec_list ')'
 align_dir ::= '.align' ce_int_literal
-varinit_list ::= varname varinitializer? (',' varinit_list)*
+
+varinit_elt ::= varname varinitializer?
+varinit_list ::= varinit_elt (',' varinit_elt)*
 var_decl ::= state_spaces align_dir? ptx_vector? ptx_types varinit_list
 var_decl_stmt ::= var_decl ';'
 

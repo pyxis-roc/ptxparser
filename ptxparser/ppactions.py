@@ -264,15 +264,15 @@ class a_param_decl(a_param_decl):
     def abstract(self):
         return Param(self.args[0], self.args[1], self.args[2], self.args[3], self.args[4])
 
+class a_varinit_elt(a_varinit_elt):
+    def abstract(self):
+        return VarInit(self.args[0], self.args[1])
+
 class a_varinit_list(a_varinit_list):
     def abstract(self):
-        if self.args[2] is None:
-            return VarInit(self.args[0], self.args[1])
-        else:
-            a2 = utils.make_concat_list(self.args[2], sel=[1])
-            x = [VarInit(self.args[0], self.args[1])]
-            x.extend(a2)
-            return x
+        a = [self.args[0]]
+        a.extend(utils.make_concat_list(self.args[1], sel=[1]))
+        return a
 
 class a_array_decl(a_array_decl):
     def abstract(self):
