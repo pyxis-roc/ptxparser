@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
-from ptx_lexer_ply import lexer
-from ptx_parser_ply import parser
-import ptxtokens
-import re
-import ptxgenactions as pga
-import ptxast as pa
+from ptxparser.ptx_lexer_ply import lexer
+from ptxparser.ptx_parser_ply import parser
+from ptxparser import ptxtokens
+from ptxparser import ptxgenactions as pga
+from ptxparser import ptxast as pa
 from ebnftools.convert.ply import utils
+
+import re
 import sys
 import time
 

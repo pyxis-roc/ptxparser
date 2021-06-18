@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     }
 
-    lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens')
+    lx = cvtply.LexerGen(treg,  action_tokens = action_tokens, lexermod='ptxtokens', modpath='.')
     lx.t_error = t_error
 
     for t in nametokens.PTX_65_KEYWORDS:
@@ -105,11 +105,11 @@ if __name__ == "__main__":
         gr = EBNFParser().parse('\n'.join(grs))
 
     ag = cvtply.CTActionGen(abstract=True)
-    prs = cvtply.ParserGen(treg, gr, 'start', actiongen=ag, handlermod='ppactions')
+    prs = cvtply.ParserGen(treg, gr, 'start', actiongen=ag, handlermod='ppactions', modpath='.')
     prs.p_error = p_error
 
     with open(od / "ptx_parser_ply.py", "w") as f:
-        print(prs.get_parser(lexer='ptx_lexer_ply'), file=f)
+        print(prs.get_parser(lexer='.ptx_lexer_ply'), file=f)
 
     with open(od / "ptxgenactions.py", "w") as f:
         print(prs.get_action_module(), file=f)

@@ -4,3 +4,8 @@ ptx_parser_ply.py
 ptxast.py
 ptxgenactions.py
 grammar/build/*
+parser.out
+parsetab.py
+lextab.py
+*.egg-info
+

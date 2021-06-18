@@ -1,7 +1,8 @@
-from ptxgenactions import *
-from ptxast import *
-from ebnftools.convert.ply import utils
-from ptxtokens import *
+from ebnftools.convert.ply import utils # drop this dependency?
+
+from .ptxgenactions import *
+from .ptxast import *
+from .ptxtokens import *
 
 class ChooseMixin:
     """Used to handle rules that are only choices"""
