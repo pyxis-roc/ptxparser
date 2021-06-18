@@ -80,7 +80,7 @@ vector_operand ::= '{' vector_operand_comp (',' vector_operand_comp )* '}'
 vector_suffixes ::= '.x' | '.y' | '.z' | '.w' | '.r' | '.g' | '.b' | '.a'
 vector_extract ::= iden vector_suffixes
 paired_arg ::= args '|' args /* this is too liberal */
-negated_arg ::= '!' iden /* only predicate registers */
+negated_arg ::= '!' ( iden | constexpr ) /* only predicate registers */
 
 args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | tex_coord_operand | reg_sel_op
 arg_list ::= (args (',' args)*)?

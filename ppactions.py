@@ -371,7 +371,11 @@ class a_array_init(a_array_init):
 
 class a_negated_arg(a_negated_arg):
     def abstract(self):
-        return NegatedArg(self.args[1])
+        a = self.args[1].args[0]
+        if isinstance(a, Id):
+            return NegatedArg(a)
+        else:
+            return a # constexpr
 
 class a_paired_arg(a_paired_arg):
     def abstract(self):
