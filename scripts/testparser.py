@@ -2,22 +2,17 @@
 
 import argparse
 from ptxparser.ptx_lexer_ply import lexer
-from ptxparser.ptx_parser_ply import parser
 from ptxparser.ast2ptx import PTXAST2Code
+import ptxparser as pp
 
-import re
 import sys
 import time
-
 
 def perf(start, end, size):
     total = end - start # fractions of seconds
     size = size / 1048576 # in MiB
 
     return size / total # MiB/s
-
-# PTX is ASCII
-version_dir_re = re.compile(r'\s*.version[ \t]+(?P<major>[0-9])\.(?P<minor>[0-9]+)', re.ASCII)
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Parse a PTX file")
@@ -32,33 +27,37 @@ if __name__ == "__main__":
 
     with open(args.ptx, 'r') as f:
         data = f.read()
-        v = version_dir_re.match(data)
+
+        v = pp.ptx_version(data)
         if v is None:
             print("ERROR: No .version directive found\n")
             sys.exit(1)
 
-        print(v.group('major'), v.group('minor'), len(v.group(0)))
-        data = data[len(v.group(0)):].split('\n')
+        print(f"PTX .version is {v[0][0]}.{v[0][1]}")
+        if v[0] > pp.PTX_VERSION_MAX:
+            print(f"WARNING: Parser only supports upto {pp.PTX_VERSION_MAX[0]}.{pp.PTX_VERSION_MAX[1]}")
+
+        data = data.split('\n')
         if args.lines == 0: args.lines = len(data)
         data = '\n'.join(data[0:args.lines])
+
         print("starting")
         start = time.monotonic()
         if args.lex_only:
             lexer.input(data)
-            #print(len(data))
             while lexer.token() is not None: pass
             result = None
         else:
-            result = parser.parse(data, lexer=lexer, debug=args.debug, tracking=args.tracking)
+            result = pp.ptx_parse(data, debug=args.debug)
         end = time.monotonic()
 
         speed = perf(start, end, len(data))
         print(f"Total time: {(end - start):0.2f}s ({speed:0.2f} MB/s)")
+
         if result is None:
             sys.exit(1)
 
-        result.version = f"{v.group('major')}.{v.group('minor')}"
-        if args.ast:
+        if args.ast and result:
             print(result)
 
         with open(args.output, "w") as f:
