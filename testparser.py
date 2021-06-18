@@ -321,6 +321,7 @@ if __name__ == "__main__":
     p.add_argument("-n", dest="lines", type=int, help="Parse the first N lines", default=1)
     p.add_argument("-o", dest="output", help="Parsed and Reconstituted output", default="reparse.ptx")
     p.add_argument("-a", dest="ast", help="Show AST", action="store_true")
+    p.add_argument("-l", dest="lex_only", action="store_true", help="Only run lexer")
     args = p.parse_args()
 
     with open(args.ptx, 'r') as f:
@@ -329,13 +330,22 @@ if __name__ == "__main__":
         if v is None:
             print("ERROR: No .version directive found\n")
             sys.exit(1)
+
         print(v.group('major'), v.group('minor'), len(v.group(0)))
         data = data[len(v.group(0)):].split('\n')
         if args.lines == 0: args.lines = len(data)
         data = '\n'.join(data[0:args.lines])
+        print("starting")
         start = time.monotonic()
-        result = parser.parse(data, lexer=lexer, debug=args.debug, tracking=args.tracking)
+        if args.lex_only:
+            lexer.input(data)
+            #print(len(data))
+            while lexer.token() is not None: pass
+            result = None
+        else:
+            result = parser.parse(data, lexer=lexer, debug=args.debug, tracking=args.tracking)
         end = time.monotonic()
+
         speed = perf(start, end, len(data))
         print(f"Total time: {(end - start):0.2f}s ({speed:0.2f} MB/s)")
         if result is None:
