@@ -22,7 +22,8 @@ EXPAND_OPCODES = set(['tex_opcode_1', 'tex_opcode_2', 'tex_opcode_3', 'tex_opcod
 
 # these opcodes usually generate duplicate opcodes because they were used to generate test cases
 DELETE_OPCODES = set(['mov_pack_unpack_opcode', 'mov_pack_unpack_4_opcode',
-                      'call_opcode' # has a more complex encoding as call_stmt in ptx_expressions
+                      'call_opcode', # has a more complex encoding as call_stmt in ptx_expressions
+                      'predicate_opcode' # handled using a separate rule
 ])
 
 # append rules given in the list to the rule in the key
