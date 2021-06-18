@@ -1,2 +1,6 @@
 build/*
-
+ptx_lexer_ply.py
+ptx_parser_ply.py
+ptxast.py
+ptxgenactions.py
+grammar/build/*
