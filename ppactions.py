@@ -385,8 +385,11 @@ class a_func(a_func):
 class a_dim_list(a_dim_list):
     def abstract(self):
         a = [self.args[0]]
-        if self.args[1]: a.append(self.args[1].args[1])
-        if self.args[2]: a.append(self.args[2].args[1])
+        if self.args[1]:
+            a.append(self.args[1].args[1])
+            if self.args[1].args[2]:
+                a.append(self.args[1].args[2].args[1])
+
         return a
 
 class a_entry_dir_list(a_entry_dir_list):

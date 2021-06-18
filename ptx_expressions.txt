@@ -142,7 +142,7 @@ func ::= '.func' param_spec? iden param_spec? '.noreturn'? func_body  ';'?
 /* iden must be _ */
 callprototype_dir ::= '.callprototype' param_spec? iden param_spec? '.noreturn'? ';'
 
-dim_list ::= ce_int_literal (',' ce_int_literal)? (',' ce_int_literal)?
+dim_list ::= ce_int_literal ((',' ce_int_literal) (',' ce_int_literal)?)?
 
 maxnreg_dir ::= '.maxnreg' ce_int_literal
 maxntid_dir ::= '.maxntid' dim_list
