@@ -5,30 +5,31 @@ if [ $# -lt 1 ]; then
     exit 1;
 fi;
 
-for PF in "$@"; do
-echo "$PF"
-O1=`mktemp`
+P=`dirname "$0"`
+PTXOPT="-O0 -arch=sm_61"
 
-if ./testparser.py "$PF" -n0 -o "$O1"; then
-    O2=`mktemp`
-    if ./testparser.py "$O1" -n0 -o "$O2"; then
-        if diff -u "$O1" "$O2"; then
-            rm "$O1"
-            if ptxas -arch=sm_75 "$O2"; then
-                rm "$O2"
-                echo "OK"
-                #exit 0;
+for PF in "$@"; do
+    echo "=== $PF"
+    O1=`mktemp`
+
+    if $P/testparser.py "$PF" -n0 -o "$O1"; then
+        O2=`mktemp`
+        if $P/testparser.py "$O1" -n0 -o "$O2"; then
+            if diff -u "$O1" "$O2"; then
+                rm "$O1"
+                if ptxas $PTXOPT "$O2"; then
+                    rm "$O2"
+                    echo "OK:$PF"
+                else
+                    echo "ERROR:$PF: ptxas failed on '$O2'"
+                fi;
             else
-                echo "ptxas failed on '$O2'"
-                #exit 1;
+                echo "ERROR:$PF: Diff failed '$O1' '$O2'"
             fi;
         else
-            echo "$O1" "$O2"
-            #exit 1;
+            echo "ERROR:$PF: Second-stage parsing failure on '$O1'"
         fi;
     else
-        echo "ERROR: Roundtrip parsing failure (stage 1 output problem)"
-        #exit 1
+        echo "ERROR:$PF: Parser error"
     fi;
-fi;
 done;
