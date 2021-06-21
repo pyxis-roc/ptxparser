@@ -40,18 +40,23 @@ writes it out to `tmp2.ptx`. It then checks if `tmp1.ptx` and
 The command `rtcheck.sh` additionally runs `tmp2.ptx` through `ptxas`
 to check for syntax errors.
 
-TODO: The command `rtcheck_sass.sh` checks that the SASS assemblies of
-`ptxfile.ptx` and `tmp1.ptx` are the same.
+The command `rtcheck_sass.sh` compiles the `ptxfile.ptx` to SASS, and
+also `tmp1.ptx1`. It then checks that the two SASS assemblies of
+`ptxfile.ptx` and `tmp1.ptx` are the same. Note that differences in
+SASS can occur even if the parser is correct (e.g. different register
+assignment).
 
 ## Limitations
 
-Syntax is limited to PTX 6.5, though support for some constructs beyond 6.5 is
-supported.
+Syntax is limited to PTX 6.5, though support for some constructs
+beyond 6.5 is supported.
 
-Does not support `.section` directives whose section names start with
-a `.`. This essentially causes the parser to break on PTX code that
-contains debug information.
+The parser does not yet support `.section` directives whose section
+names start with a `.`. This essentially causes the parser to break on
+PTX code that contains debug information.
 
-Behaves differently from `ptxas` in one notable aspect. By default,
-`ptxas` accepts "modifiers" on opcodes in _any_ order contravening the
-syntax specification. We intend to eventually support this behaviour.
+The parser behaves differently from `ptxas` in one notable aspect. By
+default, `ptxas` accepts "modifiers" on opcodes in _any_ order
+contravening the syntax specification (so `vote.ballot.sync` is
+equivalent to `vote.sync.ballot`). We intend to eventually support
+this behaviour.
