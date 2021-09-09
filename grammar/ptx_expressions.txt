@@ -13,7 +13,7 @@ DBL_LITERAL3 ::= '__external__'
 ce_int_literal ::= HEX_LITERAL | OCT_LITERAL | BIN_LITERAL | DEC_LITERAL
 
 /* a FLTX_LITERAL cannot occur in a constant expression */
-ce_flt_literal ::= FLTX_LITERAL | DBLX_LITERAL
+ce_flt_literal ::= FLTX_LITERAL /* | DBLX_LITERAL */
 
 /* DBL_LITERAL? taken from C spec  */
 /* decimal + exponent */
@@ -82,7 +82,7 @@ vector_extract ::= iden vector_suffixes
 paired_arg ::= args '|' args /* this is too liberal */
 negated_arg ::= '!' ( iden | constexpr ) /* only predicate registers */
 
-args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | FLTX_LITERAL | paired_arg | negated_arg | tex_coord_operand | reg_sel_op
+args ::= constexpr | iden | addr_operand | array_operand | vector_operand | vector_extract | ce_flt_literal | paired_arg | negated_arg | tex_coord_operand | reg_sel_op
 arg_list ::= (args (',' args)*)?
 
 /* ptxas accepts 32U and 64U */
