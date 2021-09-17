@@ -246,7 +246,7 @@ f_rcp_approx_ftz_f64_testcase ::= f_rcp_approx_ftz_f64_opcode unary_params
 sqrt_opcode ::= 'sqrt'  (((('.approx' | round_mod)) (ftz)? f32) | round_mod f64)
 sqrt_testcase ::= sqrt_opcode unary_params
 
-rsqrt_opcode ::= 'rsqrt' '.approx' (((ftz)? f32) | f64)
+rsqrt_opcode ::= 'rsqrt' '.approx' (ftz)? (f32 | f64)
 rsqrt_testcase ::= rsqrt_opcode unary_params
 
 sin_opcode ::= 'sin' '.approx' (ftz)? f32
