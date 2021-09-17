@@ -11,6 +11,7 @@ def _mks(ct):
     else:
         return ''.join(utils.dfs_token_list_rec(ct))
 
+#TODO: use predefined.py?
 # from Table 3 of the PTX spec
 PREDEFINED_IDS = {
     "%clock",
@@ -138,10 +139,10 @@ class PTXAST2Features(pa.NodeVisitor):
 
         self.add_feature(f"MultivarDecl(type={_mks(node.type)})")
 
-        map(self.visit, node.varinit)
+        list(map(self.visit, node.varinit))
 
     def visit_ArrayLiteral(self, node):
-        map(self.visit, node.elts)
+        list(map(self.visit, node.elts))
         self.add_feature("ArrayLiteral")
 
     def visit_CallTargets(self, node):
@@ -307,11 +308,11 @@ class PTXAST2Features(pa.NodeVisitor):
         features = []
 
         if node.ret_params:
-            map(self.visit, node.ret_params)
+            list(map(self.visit, node.ret_params))
             features.append(f"ret_params={len(node.ret_params)}")
 
         if node.params:
-            map(self.visit, node.params)
+            list(map(self.visit, node.params))
             features.append(f"params={len(node.params)}")
 
         if node.noreturn:
@@ -325,11 +326,11 @@ class PTXAST2Features(pa.NodeVisitor):
         features = []
 
         if node.ret_params:
-            map(self.visit, node.ret_params)
+            list(map(self.visit, node.ret_params))
             features.append(f"ret_params={len(node.ret_params)}")
 
         if node.params:
-            map(self.visit, node.params)
+            list(map(self.visit, node.params))
             features.append(f"params={len(node.params)}")
 
         if node.noreturn:
@@ -354,7 +355,7 @@ class PTXAST2Features(pa.NodeVisitor):
     def visit_Entry(self, node):
         self.visit(node.name)
         if node.params:
-            map(self.visit, node.params)
+            list(map(self.visit, node.params))
 
             self.add_feature(f"Entry(params={len(node.params)})")
         else:
