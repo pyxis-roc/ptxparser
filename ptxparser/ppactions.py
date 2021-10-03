@@ -260,6 +260,9 @@ class a_linker_identifier(ChooseMixin, a_linker_identifier):
 class a_param_state_spaces(ChooseMixin, a_param_state_spaces):
     pass
 
+class a_state_spaces(ChooseMixin, a_state_spaces):
+    pass
+
 class a_linker_stmt(a_linker_stmt):
     def abstract(self):
         return Linker(directive=self.args[0].args[0], identifier=self.args[1])
