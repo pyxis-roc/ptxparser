@@ -157,7 +157,7 @@ entry_dir_list ::= entry_dir*
 /* see the example of .entry cta_fft, but ptxas complains if two entry statements follow each other without a {} */
 
 /* TODO: not sure where entry_dir really fits in grammar-wise */
-entry ::= '.entry' iden param_spec? entry_dir_list block
+entry ::= '.entry' iden param_spec? entry_dir_list ( block | ';' )
 
 linker_dir ::= '.extern' | '.visible' | '.weak' | '.common'
 

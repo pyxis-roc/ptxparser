@@ -282,7 +282,10 @@ class PTXAST2Code(pa.NodeVisitor):
             l.append(' '.join([self.visit(d) for d in node.directives]))
 
         self._o(' '.join(l))
-        self.visit(node.body)
+        if node.body:
+            self.visit(node.body)
+        else:
+            self._o(';')
 
     def visit_Linker(self, node):
         self._o(node.directive, end=' ')

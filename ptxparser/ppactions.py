@@ -417,7 +417,13 @@ class a_entry_dir(a_entry_dir):
 
 class a_entry(a_entry):
     def abstract(self):
-        return Entry(name=self.args[1], params=self.args[2], directives=self.args[3], body=self.args[4])
+        # TODO
+        if self.args[4].args[0] == ';':
+            body = None
+        else:
+            body = self.args[4].args[0]
+
+        return Entry(name=self.args[1], params=self.args[2], directives=self.args[3], body=body)
 
 class a_tex_xps_operand(a_tex_xps_operand):
     # explicit sampler
