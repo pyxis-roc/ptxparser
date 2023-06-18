@@ -365,7 +365,10 @@ class PTXAST2Features(pa.NodeVisitor):
             for x in node.directives:
                 self.visit(x)
 
-        self.visit(node.body)
+        if node.body:
+            self.visit(node.body)
+        else:
+            self.add_feature(f"Entry(NoBody)")
 
     def visit_Linker(self, node):
         self.add_feature(f"Linker({node.directive})")
