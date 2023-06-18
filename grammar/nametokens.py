@@ -3,6 +3,9 @@
 # nametokens.py
 #
 # Simple tool to rename EBNF-extracted tokens
+#
+# SPDX-FileCopyrightText: 2023 2021 University of Rochester
+# SPDX-License-Identifier: LPGL-3.0-or-later
 
 from ebnftools.convert import tokens
 import argparse

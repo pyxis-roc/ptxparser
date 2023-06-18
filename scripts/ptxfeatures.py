@@ -3,8 +3,9 @@
 # ptxfeatures.py
 # Prints a list of PTX features
 #
-# Sreepathi Pai
-# Copyright (C) 2021, University of Rochester
+# SPDX-Contributor: Sreepathi Pai
+# SPDX-FileCopyrightText: Copyright (C) 2021, University of Rochester
+# SPDX-License-Identifier: LGPL-3.0-or-later
 
 import argparse
 from ptxparser.ptx_lexer_ply import lexer
