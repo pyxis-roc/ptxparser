@@ -1,4 +1,8 @@
 /* syntax for constant ptx expressions */
+/* part of the ptxparser project */
+/* SPDX-FileCopyrightText: Copyright 2021 University of Rochester */
+/* SPDX-FileContributor: Sreepathi Pai */
+/* SPDX-License-Identifier: LGPL-3.0-or-later */
 
 HEX_LITERAL ::= '__external__'
 OCT_LITERAL ::= '__external__'

@@ -1,3 +1,8 @@
+/* Part of the ptxparser project */
+/* SPDX-FileCopyrightText: Copyright 2021-2023 University of Rochester */
+/* SPDX-FileContributor: Sreepathi Pai */
+/* SPDX-License-Identifier: LGPL-3.0-or-later */
+/* This uses the https://www.w3.org/TR/xml/#sec-notation */
 /* this isn't wsp+ because of generation issues */
 /* note: wsp isn't use because it is assumed the tokenizer discards all white space */
 wsp ::= [#x20#x9#xd#xa]

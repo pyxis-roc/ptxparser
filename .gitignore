@@ -8,4 +8,6 @@ parser.out
 parsetab.py
 lextab.py
 *.egg-info
+build-*/
+perf/
 
