@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 import argparse
 from ptxparser.ptx_lexer_ply import lexer
 from ptxparser.ast2ptx import PTXAST2Code

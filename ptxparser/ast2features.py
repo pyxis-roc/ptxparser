@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 from . import ptxtokens
 from . import ptxgenactions as pga
 from . import ptxast as pa

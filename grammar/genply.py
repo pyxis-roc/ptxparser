@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2023 2021 University of Rochester
-# SPDX-License-Identifier: LPGL-3.0-or-later
+
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
 # SPDX-Contributor: Sreepathi Pai
 
 from ebnftools.convert import ply as cvtply

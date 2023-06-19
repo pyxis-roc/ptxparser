@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-#
-# ptxfeatures.py
-# Prints a list of PTX features
-#
-# SPDX-Contributor: Sreepathi Pai
+
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
 # SPDX-FileCopyrightText: Copyright (C) 2021, University of Rochester
+#
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import argparse

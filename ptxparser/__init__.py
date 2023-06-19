@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 import re
 from .ptx_lexer_ply import lexer
 from .ptx_parser_ply import parser

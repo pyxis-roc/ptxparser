@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 from ebnftools.convert.ply import utils # drop this dependency?
 
 from .ptxgenactions import *

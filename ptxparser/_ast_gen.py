@@ -1,17 +1,9 @@
-#-----------------------------------------------------------------
-# _ast_gen.py
+# SPDX-FileCopyrightText: 2008-2022 Eli Bendersky [https://eli.thegreenplace.net/]
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
 #
-# Generates the AST Node classes from a specification given in
-# a configuration file
-#
-# The design of this module was inspired by astgen.py from the
-# Python 2.5 code-base.
-#
-# Eli Bendersky [https://eli.thegreenplace.net/]
-# License: BSD
-#
-# Code originally imported from pycparser
-#-----------------------------------------------------------------
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 import pprint
 from string import Template
 

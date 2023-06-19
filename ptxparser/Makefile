@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 GRAMMAR ?= ../grammar/build/ptx_grammar.bnf
 TOKENS ?= ../grammar/ptx_tokens.txt
 GENPLY ?= ../grammar/genply.py

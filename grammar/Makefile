@@ -1,7 +1,7 @@
 # Part of the ptxparser project
 #
 # SPDX-FileCopyrightText: 2023 2021 University of Rochester
-# SPDX-License-Identifier: LPGL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 
 CVT2BNF = cvt2bnf.py
 TARGET ?= build

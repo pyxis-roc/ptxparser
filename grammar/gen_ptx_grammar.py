@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-#
-# gen_ptx_grammar.py
-#
-# Combines the instruction-testcase generating grammar and the PTX
-# file grammar.
-#
-# SPDX-FileCopyrightText: 2023 2021 University of Rochester
-# SPDX-License-Identifier: LPGL-3.0-or-later
-# SPDX-Contributor: Sreepathi Pai
 
+# SPDX-FileCopyrightText: 2021,2023 University of Rochester
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+# SPDX-Contributor: Sreepathi Pai
+#
 import argparse
 from ebnftools.ebnfanno import parse_annotated_grammar
 from ebnftools.ebnfconstrain import handle_constraints

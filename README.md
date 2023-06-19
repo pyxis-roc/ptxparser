@@ -72,3 +72,9 @@ default, `ptxas` accepts "modifiers" on opcodes in _any_ order
 contravening the syntax specification (so `vote.ballot.sync` is
 equivalent to `vote.sync.ballot`). We intend to eventually support
 this behaviour, this may be a breaking change.
+
+# Copyright
+
+SPDX-FileCopyrightText: 2021,2023 University of Rochester
+
+SPDX-License-Identifier: LGPL-3.0-or-later

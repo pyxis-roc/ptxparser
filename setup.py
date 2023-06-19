@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2021 University of Rochester
 #
-# SPDX-License-Identifier: LPGL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 # SPDX-Contributor: Sreepathi Pai
 
 from setuptools import setup, find_packages
