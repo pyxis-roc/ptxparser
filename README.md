@@ -6,9 +6,17 @@ A parser for NVIDIA's PTX virtual instruction set. Based on the PTX
 This is **alpha** quality software. APIs and interfaces are subject to
 change. Limitations are noted below.
 
-## Installation
+## Pre-requisite installation
 
 In a virtual environment (preferably), run:
+
+```
+pip install -r requirements.txt
+```
+
+## Installation
+
+Run:
 
 ```
 make -C grammar
@@ -17,6 +25,10 @@ python3 setup.py develop
 ```
 
 No other method of installation beyond `develop` is supported right now.
+
+The parser tables will be created the first time the parser is
+used. You can force their creation by running the `testparser.py`
+script.
 
 ## Usage
 
@@ -59,4 +71,4 @@ The parser behaves differently from `ptxas` in one notable aspect. By
 default, `ptxas` accepts "modifiers" on opcodes in _any_ order
 contravening the syntax specification (so `vote.ballot.sync` is
 equivalent to `vote.sync.ballot`). We intend to eventually support
-this behaviour.
+this behaviour, this may be a breaking change.
