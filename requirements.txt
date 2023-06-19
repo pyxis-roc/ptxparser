@@ -1,3 +1,4 @@
+ebnftools@git+https://github.com/pyxis-roc/ebnftools
 pip
 ply
 
